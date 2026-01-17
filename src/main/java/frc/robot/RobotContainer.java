@@ -84,9 +84,9 @@ public class RobotContainer {
     double currentTX = 0;
 
     public double TargetLockRotationDegrees(double tx) {
-        double kP_angle = 10;
+        double kP_angle = 0.8;
         double angle_adjust = 0;
-        double min_adjust = 1;
+        double min_adjust = 0;
 
         angle_adjust = tx * kP_angle * -1;
 
@@ -147,9 +147,9 @@ public class RobotContainer {
     b.whileTrue(new RunCommand(()-> System.out.println(drivetrain.getState().Speeds)));
 
     rightTrigger.whileTrue(drivetrain.applyRequest(() ->{
-         return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.7)
-                                .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.7)
-                                .withRotationalRate((Math.toRadians(TargetLockRotationDegrees(LimelightHelpers.getTX("limelight")))));
+         return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
+                                .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
+                                .withRotationalRate((Math.toRadians(TargetLockRotationDegrees(LimelightHelpers.getTX("limelight")))) * MaxAngularRate);
     } ));
 
     // x.whileTrue(new InstantCommand(() -> {
@@ -163,8 +163,8 @@ public class RobotContainer {
     drivetrain.setDefaultCommand(
             drivetrain.applyRequest(() -> {        
             if (!isFollowingPath) {
-             return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.7)
-                                .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.7)
+             return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
+                                .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
                                 .withRotationalRate(-controller.getRightX() * MaxAngularRate);
         }
         else{
