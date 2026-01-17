@@ -28,11 +28,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.commands.POITracker;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ElasticSubsystem;
@@ -79,9 +80,21 @@ public class RobotContainer {
         FollowPathCommand.warmupCommand().schedule();
     }          
 
-    double kP_angle = 5;
     double currentTA = 0;
     double currentTX = 0;
+
+    public double TargetLockRotationDegrees(double tx) {
+        double kP_angle = 10;
+        double angle_adjust = 0;
+        double min_adjust = 1;
+
+        angle_adjust = tx * kP_angle * -1;
+
+        if (Math.abs(angle_adjust) < min_adjust) {
+            angle_adjust = 0;
+        }
+        return angle_adjust;
+    }
 
     public double LimelightTranslation(double ta) {
         double translation = 0;
@@ -131,30 +144,27 @@ public class RobotContainer {
         
     );
 
+    b.whileTrue(new RunCommand(()-> System.out.println(drivetrain.getState().Speeds)));
+
     rightTrigger.whileTrue(drivetrain.applyRequest(() ->{
-         return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
-                                .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
-                                .withRotationalRate((Math.toRadians(currentTX * kP_angle * -1)));
+         return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.7)
+                                .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.7)
+                                .withRotationalRate((Math.toRadians(TargetLockRotationDegrees(LimelightHelpers.getTX("limelight")))));
     } ));
 
-    x.whileTrue(drivetrain.applyRequest(() -> {
-        if (!isFollowingPath) {
-            return driveRobotOriented.withVelocityX(LimelightTranslation(currentTA) * -1)
-                        .withVelocityY(0)
-                        .withRotationalRate(Math.toRadians(currentTX * kP_angle * -1));
-        }
-        else{
-            return driveRobotOriented.withVelocityX(0)
-            .withVelocityY(0)
-            .withRotationalRate(0);
-        }
-    }));
+    // x.whileTrue(new InstantCommand(() -> {
+    //     if(!isFollowingPath){
+    //         drivetrain.applyRequest(() -> { return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.7)
+    //             .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.7)
+    //             .withRotationalRate((Math.toRadians(LimelightHelpers.getTX("limelight") * kP_angle * -1)));});
+    //     }
+    // }));
 
     drivetrain.setDefaultCommand(
             drivetrain.applyRequest(() -> {        
             if (!isFollowingPath) {
-             return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
-                                .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
+             return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.7)
+                                .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.7)
                                 .withRotationalRate(-controller.getRightX() * MaxAngularRate);
         }
         else{

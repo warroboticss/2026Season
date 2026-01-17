@@ -24,7 +24,7 @@ public class Robot extends TimedRobot {
   public Robot() {
     m_robotContainer = new RobotContainer();
     PathfindingCommand.warmupCommand().schedule();
-   UsbCamera camera = CameraServer.startAutomaticCapture();
+   //UsbCamera camera = CameraServer.startAutomaticCapture();
     // camera.setResolution(320, 240);
     // camera.setFPS(15);
   }
