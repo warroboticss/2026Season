@@ -25,16 +25,12 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ElasticSubsystem;
@@ -81,17 +77,36 @@ public class RobotContainer {
         FollowPathCommand.warmupCommand().schedule();
     }          
 
-    double currentTA = 0;
-    double currentTX = 0;
+    public double DistanceFromTarget() {
+        double ty = LimelightHelpers.getTY("limelight");
+        double limelightMountAngleDegrees = 20;
+        double limelightLensHeightInches = 11.077;
+        double goalHeightInches = 44.49;
 
-    public double TargetLockRotationDegrees(double tx) {
-        double kP_angle = 0.8;
+        double angleToGoalDegrees = limelightMountAngleDegrees + ty;
+        double angleToGoalRadians = Math.toRadians(angleToGoalDegrees);
+
+        double distanceFromLimelightToGoalInches = (goalHeightInches - limelightLensHeightInches) / Math.tan(angleToGoalRadians);
+        return distanceFromLimelightToGoalInches;
+    }
+
+    public double TargetLockRotationDegrees() {
+        double kP_velocity = 0.67;
+        double kP_distance = 0;
+
         double angle_adjust = 0;
-        double min_adjust = 0;
+        double min_adjust = 2;
 
-        angle_adjust = tx * kP_angle * -1;
+        double tx = LimelightHelpers.getTX("limelight");
+        double distance_meters = DistanceFromTarget();
+        double robot_velocity_x = drivetrain.getState().Speeds.vxMetersPerSecond;
+        double robot_velocity_y = drivetrain.getState().Speeds.vyMetersPerSecond;
+        double robot_velocity_2d = Math.sqrt(Math.pow(robot_velocity_x, 2) + Math.pow(robot_velocity_y, 2));
 
-        if (Math.abs(angle_adjust) < min_adjust) {
+        // angle_adjust = -1 * tx * ((1/distance_meters) * kP_distance) * (robot_velocity_2d * kP_velocity);
+        angle_adjust = -1 * tx * (robot_velocity_2d * kP_velocity);
+
+        if (Math.abs(angle_adjust) <= min_adjust) {
             angle_adjust = 0;
         }
         return angle_adjust;
@@ -141,7 +156,6 @@ public class RobotContainer {
         // and Y is defined as to the left according to WPILib convention.
 
         a.onTrue(Commands.runOnce(()-> {
-            currentTA = LimelightHelpers.getTA("limelight"); 
             if (!isFollowingPath) {
                 isFollowingPath = true;
                 Command limelightPath = GeneratePath();
@@ -156,16 +170,10 @@ public class RobotContainer {
     rightTrigger.whileTrue(drivetrain.applyRequest(() ->{
          return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
                                 .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
-                                .withRotationalRate((Math.toRadians(TargetLockRotationDegrees(LimelightHelpers.getTX("limelight")))) * MaxAngularRate);
+                                .withRotationalRate((Math.toRadians(TargetLockRotationDegrees())) * MaxAngularRate);
     } ));
 
-    // x.whileTrue(new InstantCommand(() -> {
-    //     if(!isFollowingPath){
-    //         drivetrain.applyRequest(() -> { return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.7)
-    //             .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.7)
-    //             .withRotationalRate((Math.toRadians(LimelightHelpers.getTX("limelight") * kP_angle * -1)));});
-    //     }
-    // }));
+
 
     drivetrain.setDefaultCommand(
             drivetrain.applyRequest(() -> {        
@@ -180,6 +188,7 @@ public class RobotContainer {
             .withRotationalRate(0);
         }
     })); 
+
           
 
  // Idle while the robot is disabled. This ensures the configured
