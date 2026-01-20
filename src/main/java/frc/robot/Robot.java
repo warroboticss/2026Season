@@ -32,7 +32,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
-    /* 
+    
     if (kUseLimelight) {
       double headingDeg = m_robotContainer.drivetrain.getPigeon2().getRotation2d().getDegrees();
 
@@ -41,7 +41,7 @@ public class Robot extends TimedRobot {
       if (llMeasurement != null && llMeasurement.tagCount > 0) {
           m_robotContainer.drivetrain.addVisionMeasurement(llMeasurement.pose, llMeasurement.timestampSeconds);
       }
-  }*/
+  }
   }
 
   @Override

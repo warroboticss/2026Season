@@ -6,6 +6,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.io.IOException;
 import java.util.List;
 
 import com.ctre.phoenix6.CANBus;
@@ -110,20 +111,28 @@ public class RobotContainer {
         return translation;
     }
 
-    public Command GeneratePath(Pose2d targetPose) {
+    public Command GeneratePath() {
+        // Load the path we want to pathfind to and follow
+        try {
+            PathPlannerPath path = PathPlannerPath.fromPathFile("WWI");
+            // Create the constraints to use while pathfinding. The constraints defined in the path will only be used for the path.
+            PathConstraints constraints = new PathConstraints(
+                3.0, 4.0,
+                Units.degreesToRadians(540), Units.degreesToRadians(720)
+            );
 
-        // Create the constraints to use while pathfinding
-        PathConstraints constraints = new PathConstraints(
-                0.5, 0.5,
-                Units.degreesToRadians(540), Units.degreesToRadians(720));
-
-        // Since AutoBuilder is configured, we can use it to build pathfinding commands
-        Command pathfindingCommand = AutoBuilder.pathfindToPose(
-        targetPose,
-        constraints,
-        0.0 // Goal end velocity in meters/sec        
-        );
-        return pathfindingCommand;
+            // Since AutoBuilder is configured, we can use it to build pathfinding commands
+            Command pathfindingCommand = AutoBuilder.pathfindThenFollowPath(
+                path,
+                constraints
+            );
+            return pathfindingCommand;
+        } catch (Exception error) {
+            InstantCommand instCommand = new InstantCommand(
+                () -> {System.out.println(error);}
+            );
+            return instCommand;
+        } 
     }    
 
     
@@ -135,9 +144,7 @@ public class RobotContainer {
             currentTA = LimelightHelpers.getTA("limelight"); 
             if (!isFollowingPath) {
                 isFollowingPath = true;
-                Pose2d target = new Pose2d(4, 2, Rotation2d.fromDegrees(0));
-                Command limelightPath = GeneratePath(target);
-
+                Command limelightPath = GeneratePath();
                 limelightPath.andThen(() -> isFollowingPath = false).schedule();
             }
         })
