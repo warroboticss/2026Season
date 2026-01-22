@@ -33,7 +33,7 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     
-    if (kUseLimelight) {
+  /*  if (kUseLimelight) {
       double headingDeg = m_robotContainer.drivetrain.getPigeon2().getRotation2d().getDegrees();
 
       LimelightHelpers.SetRobotOrientation("limelight", headingDeg, 0, 0, 0, 0, 0);
@@ -41,7 +41,7 @@ public class Robot extends TimedRobot {
       if (llMeasurement != null && llMeasurement.tagCount > 0) {
           m_robotContainer.drivetrain.addVisionMeasurement(llMeasurement.pose, llMeasurement.timestampSeconds);
       }
-  }
+  }*/
   }
 
   @Override

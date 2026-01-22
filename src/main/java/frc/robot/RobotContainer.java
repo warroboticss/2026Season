@@ -21,6 +21,8 @@ import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
 
+import edu.wpi.first.math.filter.LinearFilter;
+import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
@@ -57,6 +59,13 @@ public class RobotContainer {
     private final ElasticSubsystem elasticSubsystem = new ElasticSubsystem();
     // private final LimelightSubsystem limelightSubsystem = new LimelightSubsystem(drivetrain);
 
+    private static  final MedianFilter txMedian = new MedianFilter(3);
+    private static final LinearFilter txLowpass = LinearFilter.singlePoleIIR(0.67, 0.0167); // 40 fps
+
+    public static double lastValidTx = 0.0;
+    private static long lastValidTimeMs = 0;
+    private static final long txHoldMs = 75; // in milliseconds
+
     public boolean isFollowingPath = false;
 
 
@@ -75,40 +84,49 @@ public class RobotContainer {
 
         // Warmup PathPlanner to avoid Java pauses
         FollowPathCommand.warmupCommand().schedule();
-    }          
+    }         
+    public static double getStableFilteredTx() {
+        boolean tv = LimelightHelpers.getTV("limelight");
+        if (tv) {
+            double raw_tx = LimelightHelpers.getTX("limelight");
+            double median = txMedian.calculate(raw_tx);
+            double filtered = txLowpass.calculate(median);
+            lastValidTx = filtered;
+            lastValidTimeMs = System.currentTimeMillis();
+            return filtered;
+        }
 
-    public double DistanceFromTarget() {
-        double ty = LimelightHelpers.getTY("limelight");
-        double limelightMountAngleDegrees = 20;
-        double limelightLensHeightInches = 11.077;
-        double goalHeightInches = 44.49;
+        if (System.currentTimeMillis() - lastValidTimeMs < txHoldMs) {
+            return lastValidTx;
+        }
 
-        double angleToGoalDegrees = limelightMountAngleDegrees + ty;
-        double angleToGoalRadians = Math.toRadians(angleToGoalDegrees);
-
-        double distanceFromLimelightToGoalInches = (goalHeightInches - limelightLensHeightInches) / Math.tan(angleToGoalRadians);
-        return distanceFromLimelightToGoalInches;
+        return Double.NaN;
     }
+    
 
     public double TargetLockRotationDegrees() {
-        double kP_velocity = 0.67;
-        double kP_distance = 0;
-
         double angle_adjust = 0;
-        double min_adjust = 2;
+        double tx = getStableFilteredTx();
+       
+        if (LimelightHelpers.getTV("limelight")){
+            double kP_feedforward = ElasticSubsystem.feedforward;
+            double kP_feedback = ElasticSubsystem.feedback;
 
-        double tx = LimelightHelpers.getTX("limelight");
-        double distance_meters = DistanceFromTarget();
-        double robot_velocity_x = drivetrain.getState().Speeds.vxMetersPerSecond;
-        double robot_velocity_y = drivetrain.getState().Speeds.vyMetersPerSecond;
-        double robot_velocity_2d = Math.sqrt(Math.pow(robot_velocity_x, 2) + Math.pow(robot_velocity_y, 2));
-
-        // angle_adjust = -1 * tx * ((1/distance_meters) * kP_distance) * (robot_velocity_2d * kP_velocity);
-        angle_adjust = -1 * tx * (robot_velocity_2d * kP_velocity);
-
-        if (Math.abs(angle_adjust) <= min_adjust) {
-            angle_adjust = 0;
+            double tx_radians = Math.toRadians(tx);
+            
+            double robot_velocity_x = drivetrain.getState().Speeds.vxMetersPerSecond;
+            double robot_velocity_y = drivetrain.getState().Speeds.vyMetersPerSecond;
+            double robot_lateral_velocity = -robot_velocity_x * Math.sin(tx_radians) + robot_velocity_y * Math.cos(tx_radians);
+            
+            double feed_forward_adjust = 0;
+            // angle_adjust = -1 * tx * ((1/distance_meters) * kP_distance) * (robot_velocity_2d * kP_velocity);
+            if (ElasticSubsystem.Usefeedforward) {
+                feed_forward_adjust = (robot_lateral_velocity) * kP_feedforward;
+            }
+            double feed_back_adjust = -1 * tx * kP_feedback;
+            angle_adjust = feed_back_adjust + feed_forward_adjust;
         }
+        
         return angle_adjust;
     }
 
@@ -143,10 +161,8 @@ public class RobotContainer {
             );
             return pathfindingCommand;
         } catch (Exception error) {
-            InstantCommand instCommand = new InstantCommand(
-                () -> {System.out.println(error);}
-            );
-            return instCommand;
+            System.out.println("error :(");
+            return Commands.none();
         } 
     }    
 
