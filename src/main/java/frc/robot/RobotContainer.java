@@ -5,30 +5,22 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
-
-import java.io.IOException;
-import java.util.List;
-
-import com.ctre.phoenix6.CANBus;
-import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.FollowPathCommand;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.path.Waypoint;
 
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.filter.MedianFilter;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
@@ -36,6 +28,9 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ElasticSubsystem;
+import frc.robot.subsystems.Limelight;
+import frc.robot.subsystems.MatchStateManager;
+
 
 public class RobotContainer {
     public double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -45,11 +40,12 @@ public class RobotContainer {
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
             .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
+    private final SwerveRequest.FieldCentric driveTargeting = new SwerveRequest.FieldCentric()
+            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(0.0) // Add a 10% deadband
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     private final SwerveRequest.RobotCentric driveRobotOriented = new SwerveRequest.RobotCentric()
             .withDeadband(MaxSpeed * 0.05).withRotationalDeadband(MaxAngularRate * 0.05) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-    private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
@@ -57,10 +53,12 @@ public class RobotContainer {
 
     public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     private final ElasticSubsystem elasticSubsystem = new ElasticSubsystem();
+    private final Limelight vision = new Limelight(drivetrain);
+    private final MatchStateManager matchStateManager = new MatchStateManager();
+    
     // private final LimelightSubsystem limelightSubsystem = new LimelightSubsystem(drivetrain);
-
-    private static  final MedianFilter txMedian = new MedianFilter(3);
-    private static final LinearFilter txLowpass = LinearFilter.singlePoleIIR(0.67, 0.0167); // 40 fps
+    private static  final MedianFilter txMedian = new MedianFilter(1);
+    private static final LinearFilter txLowpass = LinearFilter.singlePoleIIR(0.1, 0.02); // 40 fps
 
     public static double lastValidTx = 0.0;
     private static long lastValidTimeMs = 0;
@@ -81,15 +79,15 @@ public class RobotContainer {
         isFollowingPath = false;
         autoChooser = AutoBuilder.buildAutoChooser("Example");
         configureBindings();
-
-        // Warmup PathPlanner to avoid Java pauses
-        FollowPathCommand.warmupCommand().schedule();
     }         
-    public static double getStableFilteredTx() {
+
+
+    // filters tx  values
+    public static double getStableFilteredTX() {
         boolean tv = LimelightHelpers.getTV("limelight");
         if (tv) {
-            double raw_tx = LimelightHelpers.getTX("limelight");
-            double median = txMedian.calculate(raw_tx);
+            double tx = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0.0);
+            double median = txMedian.calculate(tx);
             double filtered = txLowpass.calculate(median);
             lastValidTx = filtered;
             lastValidTimeMs = System.currentTimeMillis();
@@ -104,50 +102,35 @@ public class RobotContainer {
     }
     
 
+    // finds angle adjust based on robot velocity and filtered tx values
     public double TargetLockRotationDegrees() {
         double angle_adjust = 0;
-        double tx = getStableFilteredTx();
+        double tx = getStableFilteredTX();
+
        
         if (LimelightHelpers.getTV("limelight")){
-            double kP_feedforward = ElasticSubsystem.feedforward;
-            double kP_feedback = ElasticSubsystem.feedback;
-
-            double tx_radians = Math.toRadians(tx);
-            
+            double kP_feedforward = 0.25;
+            double kP_feedback = 4.2;
+            double angleOffset = Math.toRadians(tx);
             double robot_velocity_x = drivetrain.getState().Speeds.vxMetersPerSecond;
             double robot_velocity_y = drivetrain.getState().Speeds.vyMetersPerSecond;
-            double robot_lateral_velocity = -robot_velocity_x * Math.sin(tx_radians) + robot_velocity_y * Math.cos(tx_radians);
+            double robot_lateral_velocity = -robot_velocity_x * Math.sin(angleOffset) + robot_velocity_y * Math.cos(angleOffset); 
+            double feed_forward_adjust = (robot_lateral_velocity) * kP_feedforward;
             
-            double feed_forward_adjust = 0;
-            // angle_adjust = -1 * tx * ((1/distance_meters) * kP_distance) * (robot_velocity_2d * kP_velocity);
-            if (ElasticSubsystem.Usefeedforward) {
-                feed_forward_adjust = (robot_lateral_velocity) * kP_feedforward;
-            }
-            double feed_back_adjust = -1 * tx * kP_feedback;
-            angle_adjust = feed_back_adjust + feed_forward_adjust;
+            System.out.println(feed_forward_adjust);
+            double feed_back_adjust = -1 * angleOffset * kP_feedback;
+            angle_adjust = feed_back_adjust + (-1 * feed_forward_adjust);
         }
         
         return angle_adjust;
     }
 
-    public double LimelightTranslation(double ta) {
-        double translation = 0;
-        if (ta <= 2.0) {
-            translation = -0.5;     
-        } else if (ta > 2.0 && ta < 8.0) {
-            translation = -0.3;
-        } else if (ta >= 8.0 && ta < 15.0) {
-            translation = 0.2;
-        } else {
-            translation = 0;
-        }
-        return translation;
-    }
 
+    // uses pathplanner to generate path
     public Command GeneratePath() {
         // Load the path we want to pathfind to and follow
         try {
-            PathPlannerPath path = PathPlannerPath.fromPathFile("WWI");
+            PathPlannerPath path = PathPlannerPath.fromPathFile("WWI.I");
             // Create the constraints to use while pathfinding. The constraints defined in the path will only be used for the path.
             PathConstraints constraints = new PathConstraints(
                 3.0, 4.0,
@@ -175,55 +158,54 @@ public class RobotContainer {
             if (!isFollowingPath) {
                 isFollowingPath = true;
                 Command limelightPath = GeneratePath();
-                limelightPath.andThen(() -> isFollowingPath = false).schedule();
+                CommandScheduler.getInstance().schedule(limelightPath.andThen(() -> isFollowingPath = false));
+            } // hello world! -- (Hunter, Kevin, Ahadu)
+        }));
+
+        // aligns to hub
+        rightTrigger.whileTrue(drivetrain.applyRequest(() ->{
+            return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
+                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
+                                    .withRotationalRate((TargetLockRotationDegrees()));
+        } ));
+
+        // reset the field-centric heading on left bumper press
+        controller.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+
+        // resets isFollowingPath -> we should put this on elastic
+        y.onTrue(new InstantCommand(() -> {
+            isFollowingPath = false;
+        }));
+
+
+        drivetrain.setDefaultCommand(
+                drivetrain.applyRequest(() -> {        
+                if (!isFollowingPath) {
+                return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
+                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
+                                    .withRotationalRate(-controller.getRightX() * MaxAngularRate);
             }
-        })
-        
-    );
-
-    b.whileTrue(new RunCommand(()-> System.out.println(drivetrain.getState().Speeds)));
-
-    rightTrigger.whileTrue(drivetrain.applyRequest(() ->{
-         return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
-                                .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
-                                .withRotationalRate((Math.toRadians(TargetLockRotationDegrees())) * MaxAngularRate);
-    } ));
-
-
-
-    drivetrain.setDefaultCommand(
-            drivetrain.applyRequest(() -> {        
-            if (!isFollowingPath) {
-             return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
-                                .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
-                                .withRotationalRate(-controller.getRightX() * MaxAngularRate);
-        }
-        else{
-            return driveRobotOriented.withVelocityX(0)
-            .withVelocityY(0)
-            .withRotationalRate(0);
-        }
-    })); 
+            else{
+                return driveRobotOriented.withVelocityX(0)
+                .withVelocityY(0)
+                .withRotationalRate(0);
+            }
+        })); 
 
           
 
- // Idle while the robot is disabled. This ensures the configured
+        // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
         final var idle = new SwerveRequest.Idle();
         RobotModeTriggers.disabled().whileTrue(
             drivetrain.applyRequest(() -> idle).ignoringDisable(true)
         );
 
-        //controller.a().whileTrue(drivetrain.applyRequest(() -> brake));
-
-
-        // reset the field-centric heading on left bumper press
-        controller.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
     public Command getAutonomousCommand() {
-        return autoChooser.getSelected();
+        // return autoChooser.getSelected();
+        return Commands.none();
     }
 }

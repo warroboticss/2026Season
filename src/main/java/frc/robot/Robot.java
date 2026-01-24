@@ -1,47 +1,23 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot;
 
 import com.pathplanner.lib.commands.PathfindingCommand;
-
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.RobotContainer;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.cscore.UsbCamera;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private final RobotContainer m_robotContainer;
-  private final boolean kUseLimelight = true;
-
 
   public Robot() {
     m_robotContainer = new RobotContainer();
     PathfindingCommand.warmupCommand().schedule();
-   //UsbCamera camera = CameraServer.startAutomaticCapture();
-    // camera.setResolution(320, 240);
-    // camera.setFPS(15);
   }
 
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
-    
-  /*  if (kUseLimelight) {
-      double headingDeg = m_robotContainer.drivetrain.getPigeon2().getRotation2d().getDegrees();
-
-      LimelightHelpers.SetRobotOrientation("limelight", headingDeg, 0, 0, 0, 0, 0);
-      var llMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
-      if (llMeasurement != null && llMeasurement.tagCount > 0) {
-          m_robotContainer.drivetrain.addVisionMeasurement(llMeasurement.pose, llMeasurement.timestampSeconds);
-      }
-  }*/
   }
 
   @Override
@@ -56,8 +32,6 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-
-    //limelightSubsystem.zeroPigeonYaw();
 
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
