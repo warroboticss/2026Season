@@ -52,9 +52,9 @@ public class RobotContainer {
     private final CommandXboxController controller = new CommandXboxController(0);
 
     public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
-    private final ElasticSubsystem elasticSubsystem = new ElasticSubsystem();
-    private final Limelight vision = new Limelight(drivetrain);
-    private final MatchStateManager matchStateManager = new MatchStateManager();
+    //private final ElasticSubsystem elasticSubsystem = new ElasticSubsystem();
+    //private final Limelight vision = new Limelight(drivetrain);
+    //private final MatchStateManager matchStateManager = new MatchStateManager();
     
     // private final LimelightSubsystem limelightSubsystem = new LimelightSubsystem(drivetrain);
     private static  final MedianFilter txMedian = new MedianFilter(1);

@@ -6,9 +6,10 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Util.RectanglePoseArea;
-//import frc.robot.Constants;
+import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
 
 public class Limelight extends SubsystemBase {
@@ -20,8 +21,8 @@ public class Limelight extends SubsystemBase {
     private Boolean enable = true;
     private Boolean trust = false;
     // error buildups number of errors
-    private int fieldError = 0;
-    private int distanceError = 0;
+    public static int fieldError = 0;
+    public static int distanceError = 0;
     private Pose2d botpose;
     private double confidence;
     private double targetDistance;
@@ -30,8 +31,8 @@ public class Limelight extends SubsystemBase {
         new RectanglePoseArea(new Translation2d(0.0, 0.0), new Translation2d(16.54, 8.02));
     public Limelight(CommandSwerveDrivetrain drivetrain) {
         this.drivetrain = drivetrain;
-        // SmartDashboard.putNumber("Field Error", fieldError);
-        // SmartDashboard.putNumber("Limelight Error", distanceError);
+        SmartDashboard.putNumber("Field Error", fieldError);
+        SmartDashboard.putNumber("Limelight Error", distanceError);
     }
 
     @Override
@@ -51,11 +52,11 @@ public class Limelight extends SubsystemBase {
                                 VecBuilder.fill(confidence, confidence, .01));
                         } else {
                             distanceError++;
-                            //SmartDashboard.putNumber("Limelight Error", distanceError);
+                            SmartDashboard.putNumber("Limelight Error", distanceError);
                         }
                 } else {
                     fieldError++;
-                    //SmartDashboard.putNumber("Field Error", fieldError);
+                    SmartDashboard.putNumber("Field Error", fieldError);
                 }
             }
         }
