@@ -181,8 +181,8 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
                 drivetrain.applyRequest(() -> {        
                 if (!isFollowingPath) {
-                return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
-                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
+                return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.7)
+                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.7)
                                     .withRotationalRate(-controller.getRightX() * MaxAngularRate);
             }
             else{

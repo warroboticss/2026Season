@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -15,9 +16,9 @@ import frc.robot.LimelightHelpers;
 public class Limelight extends SubsystemBase {
     // defines all variables used for vison pose estimmates
     // IMPORTANT COMMENT: Leo typed that ^^^
-    CommandSwerveDrivetrain drivetrain;
+    static CommandSwerveDrivetrain drivetrain;
     Alliance alliance;
-    private String ll = "limelight";
+    private static String ll = "limelight";
     private Boolean enable = true;
     private Boolean trust = false;
     // error buildups number of errors
@@ -72,5 +73,39 @@ public class Limelight extends SubsystemBase {
 
     public void trustLL(boolean trust){
         this.trust = trust;
+    }
+
+    public static double getAbsoluteDistanceFromTarget(Pose2d target) {
+        Pose2d botPose = drivetrain.getState().Pose;
+        double distanceToTarget = target.getTranslation().getDistance(botPose.getTranslation());
+        // returns the absolute linear distance to the target for our regressions
+        return Math.abs(distanceToTarget);
+    }
+
+    public static Translation2d getTargetOffset(double flightTime) {
+        // gets robot motion
+        double vx_robotRelative = drivetrain.getState().Speeds.vxMetersPerSecond;
+        double vy_robotRelative = drivetrain.getState().Speeds.vyMetersPerSecond;
+        double robotRotation = drivetrain.getState().Pose.getRotation().getRadians();
+
+        // convert robot relative velocities to field relative velocities
+        double vx_fieldRelative = vx_robotRelative * Math.cos(robotRotation) - Math.sin(robotRotation) * vy_robotRelative;
+        double vy_fieldRelative = vx_robotRelative * Math.sin(robotRotation) + Math.cos(robotRotation) * vy_robotRelative;
+        // returns target offset (inverted)
+        return new Translation2d(-vx_fieldRelative * flightTime, -vy_fieldRelative * flightTime); 
+    }
+    
+    public static double getHeadingError(Pose2d target) {
+        Pose2d botPose = drivetrain.getState().Pose;
+        double dist_x = target.getX() - botPose.getX();
+        double dist_y = target.getY() - botPose.getY();
+
+        double targetToNormal = Math.atan2(dist_y, dist_x);
+        double robotYaw = botPose.getRotation().getRadians();
+
+        double angleError = targetToNormal - robotYaw;
+        // normalizes angle within all quadrants
+        angleError = Math.atan2(Math.sin(angleError), Math.cos(angleError));
+        return angleError;
     }
 }
