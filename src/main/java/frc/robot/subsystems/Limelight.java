@@ -100,12 +100,10 @@ public class Limelight extends SubsystemBase {
         double dist_x = target.getX() - botPose.getX();
         double dist_y = target.getY() - botPose.getY();
 
-        double targetToNormal = Math.atan2(dist_y, dist_x);
-        double robotYaw = botPose.getRotation().getRadians();
-
-        double angleError = targetToNormal - robotYaw;
-        // normalizes angle within all quadrants
-        angleError = Math.atan2(Math.sin(angleError), Math.cos(angleError));
+        Rotation2d targetToNormal = new Rotation2d(Math.atan2(dist_y, dist_x));
+        Rotation2d robotYaw = botPose.getRotation();
+        // returns angle to target (wrapped for π, -π)
+        double angleError = targetToNormal.minus(robotYaw).getRadians();
         return angleError;
     }
 }
