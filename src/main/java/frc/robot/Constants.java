@@ -2,5 +2,5 @@ package frc.robot;
 
 public class Constants {
     public static boolean WE_WON_AUTO = false;
-    public static final String ALLIANCE = "";
+    public static String ALLIANCE = "";
 }

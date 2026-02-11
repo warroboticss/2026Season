@@ -82,7 +82,7 @@ public class RobotContainer {
     }         
 
 
-    // filters tx  values
+    // filters tx values
     public static double getStableFilteredTX() {
         boolean tv = LimelightHelpers.getTV("limelight");
         if (tv) {

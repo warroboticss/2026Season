@@ -106,4 +106,8 @@ public class Limelight extends SubsystemBase {
         double angleError = targetToNormal.minus(robotYaw).getRadians();
         return angleError;
     }
+
+    public static Pose2d getBotPose() {
+        return drivetrain.getState().Pose;
+    }
 }

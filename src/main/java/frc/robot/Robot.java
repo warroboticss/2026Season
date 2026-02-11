@@ -1,9 +1,12 @@
 package frc.robot;
 
 import com.pathplanner.lib.commands.PathfindingCommand;
+
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.Constants;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
@@ -14,6 +17,7 @@ public class Robot extends TimedRobot {
   public Robot() {
     m_robotContainer = new RobotContainer();
     PathfindingCommand.warmupCommand().schedule();
+    Constants.ALLIANCE = DriverStation.getAlliance().get().toString();
   }
 
   @Override
@@ -48,6 +52,12 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
   m_robotContainer.isFollowingPath = false;
+  // checks if we won auto
+  if (Constants.ALLIANCE.toUpperCase().contains(DriverStation.getGameSpecificMessage())) {
+    Constants.WE_WON_AUTO = true;
+  } else {
+    Constants.WE_WON_AUTO = false;
+  }
   
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
