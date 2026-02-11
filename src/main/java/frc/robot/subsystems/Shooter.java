@@ -8,6 +8,7 @@ import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 
 // all device ids are temporary and not canon
 
@@ -15,11 +16,13 @@ public class Shooter extends SubsystemBase{
     static final TalonFX rollersMain = new TalonFX(0);
     static final TalonFX rollerFollower = new TalonFX(1);
     static final TalonFX shooterMain = new TalonFX(2);
-    static final TalonFX shooterFollower= new TalonFX(3);
+    static final TalonFX shooterFollower = new TalonFX(3);
     static final TalonFX hoodAngler = new TalonFX(4);
     static final TalonFX mouth = new TalonFX(5);
     final MotionMagicVoltage m_angleRequest = new MotionMagicVoltage(0.0);
     final MotionMagicVelocityVoltage m_shooterRequest = new MotionMagicVelocityVoltage(0.0);
+
+    private double desiredShooterRPS = Constants.SHOOTER_DEFAULT_RPS;
 
     public Shooter(){
         rollerFollower.setControl(new Follower(0, MotorAlignmentValue.Aligned));
@@ -64,12 +67,17 @@ public class Shooter extends SubsystemBase{
         hoodAngler.getConfigurator().apply(talonFXConfigsAngle);
     }
 
+    @Override
+    public void periodic() {
+        shooterMain.setControl(m_shooterRequest.withVelocity(desiredShooterRPS));
+    }
+
     public void setRoller(double speed) {
         rollersMain.set(speed);
     }
 
     public void setShooter(double speed) {
-        shooterMain.setControl(m_shooterRequest.withVelocity(speed));
+        desiredShooterRPS = speed;
     }
 
     public void setAngle(double angle) {

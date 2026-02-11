@@ -21,15 +21,18 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.ShootOnTheMoveCmd;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ElasticSubsystem;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.MatchStateManager;
+import frc.robot.subsystems.Shooter;
 
 
 public class RobotContainer {
@@ -52,6 +55,7 @@ public class RobotContainer {
     private final CommandXboxController controller = new CommandXboxController(0);
 
     public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+    private final Shooter shooter = new Shooter();
     //private final ElasticSubsystem elasticSubsystem = new ElasticSubsystem();
     //private final Limelight vision = new Limelight(drivetrain);
     //private final MatchStateManager matchStateManager = new MatchStateManager();
@@ -60,12 +64,10 @@ public class RobotContainer {
     private static  final MedianFilter txMedian = new MedianFilter(1);
     private static final LinearFilter txLowpass = LinearFilter.singlePoleIIR(0.1, 0.02); // 40 fps
 
-    public static double lastValidTx = 0.0;
     private static long lastValidTimeMs = 0;
     private static final long txHoldMs = 75; // in milliseconds
 
     public boolean isFollowingPath = false;
-
 
     private final Trigger a = controller.a();
     private final Trigger b = controller.b();
@@ -81,50 +83,14 @@ public class RobotContainer {
         configureBindings();
     }         
 
-
-    // filters tx values
-    public static double getStableFilteredTX() {
-        boolean tv = LimelightHelpers.getTV("limelight");
-        if (tv) {
-            double tx = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0.0);
-            double median = txMedian.calculate(tx);
-            double filtered = txLowpass.calculate(median);
-            lastValidTx = filtered;
-            lastValidTimeMs = System.currentTimeMillis();
-            return filtered;
-        }
-
-        if (System.currentTimeMillis() - lastValidTimeMs < txHoldMs) {
-            return lastValidTx;
-        }
-
-        return Double.NaN;
-    }
-    
-
-    // finds angle adjust based on robot velocity and filtered tx values
-    public double TargetLockRotationDegrees() {
-        double angle_adjust = 0;
-        double tx = getStableFilteredTX();
-
-       
-        if (LimelightHelpers.getTV("limelight")){
-            double kP_feedforward = 0.25;
-            double kP_feedback = 4.2;
-            double angleOffset = Math.toRadians(tx);
-            double robot_velocity_x = drivetrain.getState().Speeds.vxMetersPerSecond;
-            double robot_velocity_y = drivetrain.getState().Speeds.vyMetersPerSecond;
-            double robot_lateral_velocity = -robot_velocity_x * Math.sin(angleOffset) + robot_velocity_y * Math.cos(angleOffset); 
-            double feed_forward_adjust = (robot_lateral_velocity) * kP_feedforward;
-            
-            System.out.println(feed_forward_adjust);
-            double feed_back_adjust = -1 * angleOffset * kP_feedback;
-            angle_adjust = feed_back_adjust + (-1 * feed_forward_adjust);
-        }
-        
-        return angle_adjust;
-    }
-
+    Command shootAndAlign = new ParallelCommandGroup(
+        new RunCommand(() -> drivetrain.applyRequest(() -> { 
+            double kP_angleAdjust = 0.0; // tune this
+            return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
+                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
+                                    .withRotationalRate(ShootOnTheMoveCmd.getTargetAngle() * kP_angleAdjust);}
+            ), drivetrain), new ShootOnTheMoveCmd(shooter)
+    );
 
     // uses pathplanner to generate path
     public Command GeneratePath() {
@@ -144,7 +110,7 @@ public class RobotContainer {
             );
             return pathfindingCommand;
         } catch (Exception error) {
-            System.out.println("error :(");
+            System.out.println("error");
             return Commands.none();
         } 
     }    
@@ -162,12 +128,7 @@ public class RobotContainer {
             } // hello world! -- (Hunter, Kevin, Ahadu)
         }));
 
-        // aligns to hub
-        rightTrigger.whileTrue(drivetrain.applyRequest(() ->{
-            return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
-                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
-                                    .withRotationalRate((TargetLockRotationDegrees()));
-        } ));
+        rightTrigger.whileTrue(shootAndAlign);
 
         // reset the field-centric heading on left bumper press
         controller.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
@@ -177,18 +138,15 @@ public class RobotContainer {
             isFollowingPath = false;
         }));
 
-
-        drivetrain.setDefaultCommand(
-                drivetrain.applyRequest(() -> {        
-                if (!isFollowingPath) {
+        drivetrain.setDefaultCommand(drivetrain.applyRequest(() -> {        
+            if (!isFollowingPath) {
                 return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.7)
                                     .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.7)
                                     .withRotationalRate(-controller.getRightX() * MaxAngularRate);
-            }
-            else{
+            } else {
                 return driveRobotOriented.withVelocityX(0)
-                .withVelocityY(0)
-                .withRotationalRate(0);
+                                    .withVelocityY(0)
+                                    .withRotationalRate(0);
             }
         })); 
 

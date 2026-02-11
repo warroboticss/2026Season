@@ -15,19 +15,18 @@ import frc.robot.LimelightHelpers;
 
 public class Limelight extends SubsystemBase {
     // defines all variables used for vison pose estimmates
-    // IMPORTANT COMMENT: Leo typed that ^^^
     static CommandSwerveDrivetrain drivetrain;
     Alliance alliance;
     private static String ll = "limelight";
     private Boolean enable = true;
     private Boolean trust = false;
-    // error buildups number of errors
+    // error buildups (number of errors)
     public static int fieldError = 0;
     public static int distanceError = 0;
     private Pose2d botpose;
     private double confidence;
     private double targetDistance;
-    // This creates our field so we ensure vision estimates are within the bodleif et fo sdn
+    // This creates our field so we ensure vision estimates are within its bounds
     private static final RectanglePoseArea field = 
         new RectanglePoseArea(new Translation2d(0.0, 0.0), new Translation2d(16.54, 8.02));
     public Limelight(CommandSwerveDrivetrain drivetrain) {
