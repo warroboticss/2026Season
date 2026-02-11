@@ -26,10 +26,12 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.DeployIntake;
 import frc.robot.commands.ShootOnTheMoveCmd;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ElasticSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.MatchStateManager;
 import frc.robot.subsystems.Shooter;
@@ -56,6 +58,7 @@ public class RobotContainer {
 
     public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     private final Shooter shooter = new Shooter();
+    private final IntakeSubsystem intake = new IntakeSubsystem();
     //private final ElasticSubsystem elasticSubsystem = new ElasticSubsystem();
     //private final Limelight vision = new Limelight(drivetrain);
     //private final MatchStateManager matchStateManager = new MatchStateManager();
@@ -74,6 +77,7 @@ public class RobotContainer {
     private final Trigger x = controller.x();
     private final Trigger y = controller.y();
     private final Trigger rightTrigger = controller.rightTrigger();
+    private final Trigger leftTrigger = controller.leftTrigger();
 
     private SendableChooser<Command> autoChooser;
 
@@ -85,10 +89,21 @@ public class RobotContainer {
 
     Command shootAndAlign = new ParallelCommandGroup(
         new RunCommand(() -> drivetrain.applyRequest(() -> { 
-            double kP_angleAdjust = 0.0; // tune this
+            double kP_feedback = 0.0; // tune these
+            double kP_feedforward = 0.0;
+
+            double angleError = ShootOnTheMoveCmd.getTargetAngle();
+
+            double robot_velocity_x = drivetrain.getState().Speeds.vxMetersPerSecond;
+            double robot_velocity_y = drivetrain.getState().Speeds.vyMetersPerSecond;
+            double robot_lateral_velocity = -robot_velocity_x * Math.sin(angleError) + robot_velocity_y * Math.cos(angleError); 
+
+            double feedforward = robot_lateral_velocity * kP_feedforward;
+            double feedback = angleError * kP_feedback;
+
             return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
                                     .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
-                                    .withRotationalRate(ShootOnTheMoveCmd.getTargetAngle() * kP_angleAdjust);}
+                                    .withRotationalRate(feedforward + feedback);}
             ), drivetrain), new ShootOnTheMoveCmd(shooter)
     );
 
@@ -129,6 +144,7 @@ public class RobotContainer {
         }));
 
         rightTrigger.whileTrue(shootAndAlign);
+        leftTrigger.whileTrue(new DeployIntake(intake));
 
         // reset the field-centric heading on left bumper press
         controller.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));

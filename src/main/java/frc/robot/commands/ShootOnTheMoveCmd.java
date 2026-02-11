@@ -18,7 +18,7 @@ public class ShootOnTheMoveCmd extends Command {
         ShootOnTheMoveCmd.shooter = shooter;
         addRequirements(shooter);
     }
-
+    
     public void execute() {
         Pose2d botPose = Limelight.getBotPose();
         // picks our target

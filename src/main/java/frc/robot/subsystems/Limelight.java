@@ -109,4 +109,10 @@ public class Limelight extends SubsystemBase {
     public static Pose2d getBotPose() {
         return drivetrain.getState().Pose;
     }
+
+    public static double getBotSpeed() {
+        double botVxMps = drivetrain.getState().Speeds.vxMetersPerSecond;
+        double botVyMps = drivetrain.getState().Speeds.vyMetersPerSecond;
+        return Math.sqrt(Math.pow(botVxMps, 2) + Math.pow(botVyMps, 2));
+    }
 }

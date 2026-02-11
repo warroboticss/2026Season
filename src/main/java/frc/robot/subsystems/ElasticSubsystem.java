@@ -9,8 +9,11 @@ import edu.wpi.first.networktables.IntegerPublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 // The ElasticSubsystem periodically publishes custom data to our NetworkTable for Elastic
 
@@ -20,6 +23,9 @@ public class ElasticSubsystem extends SubsystemBase{
     private final BooleanPublisher teamHubActive_Publisher;
     private final IntegerPublisher fieldError_Publisher;
     private final IntegerPublisher distanceError_Publisher;
+    private final DoublePublisher velocityPublisher;
+    private final DoublePublisher voltagePublisher;
+    private final Field2d m_field = new Field2d();
     // private final BooleanPublisher matchState_Publisher;
     // private final BooleanSubscriber matchState_Subscriber;
 
@@ -31,6 +37,9 @@ public class ElasticSubsystem extends SubsystemBase{
         teamHubActive_Publisher = elasticTable.getBooleanTopic("teamHubActive").publish();
         fieldError_Publisher = elasticTable.getIntegerTopic("fieldError").publish();
         distanceError_Publisher = elasticTable.getIntegerTopic("distanceError").publish();
+        velocityPublisher = elasticTable.getDoubleTopic("Velocity").publish();
+        voltagePublisher = elasticTable.getDoubleTopic("Voltage").publish();
+
     }
 
     // ahadu, who won auto has been moved to robot.java for simplicity so we dont call it 1,000,000 times
@@ -45,5 +54,10 @@ public class ElasticSubsystem extends SubsystemBase{
         teamHubActive_Publisher.set(matchstate);
         fieldError_Publisher.set(Limelight.fieldError);
         distanceError_Publisher.set(Limelight.distanceError);
+        velocityPublisher.set(Limelight.getBotSpeed());
+        voltagePublisher.set(RobotController.getBatteryVoltage());
+
+        SmartDashboard.putData("Field", m_field);
+        m_field.setRobotPose(Limelight.getBotPose());
     }
 }
