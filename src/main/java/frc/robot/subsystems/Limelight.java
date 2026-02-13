@@ -14,8 +14,8 @@ import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
 
 public class Limelight extends SubsystemBase {
-    // defines all variables used for vison pose estimmates
-    static CommandSwerveDrivetrain drivetrain;
+    // defines all variables used for vison pose estimates
+    private static CommandSwerveDrivetrain drivetrain;
     Alliance alliance;
     private static String ll = "limelight";
     private Boolean enable = true;
@@ -114,5 +114,35 @@ public class Limelight extends SubsystemBase {
         double botVxMps = drivetrain.getState().Speeds.vxMetersPerSecond;
         double botVyMps = drivetrain.getState().Speeds.vyMetersPerSecond;
         return Math.sqrt(Math.pow(botVxMps, 2) + Math.pow(botVyMps, 2));
+    }
+
+    public static String getTrenchPath() {
+        Pose2d currentBotPose = getBotPose();
+        String trenchPath = null;
+        switch (Constants.ALLIANCE) {
+            case "Blue":
+                if (Constants.UPPER_BLUE_AREA.isPoseWithinArea(currentBotPose)) {
+                    trenchPath = "Upper Blue Path";
+                } else if (Constants.LOWER_BLUE_AREA.isPoseWithinArea(currentBotPose)) {
+                    trenchPath = "Lower Blue Path";
+                } else if (Constants.UPPER_NEUTRAL.isPoseWithinArea(currentBotPose)) {
+                    trenchPath = "Upper Neutral Blue Path";
+                } else if (Constants.LOWER_NEUTRAL.isPoseWithinArea(currentBotPose)) {
+                    trenchPath = "Lower Neutral Blue Path";
+                }
+                break;
+            case "Red":
+                if (Constants.UPPER_RED_AREA.isPoseWithinArea(currentBotPose)) {
+                    trenchPath = "Upper Red Path";
+                } else if (Constants.LOWER_RED_AREA.isPoseWithinArea(currentBotPose)) {
+                    trenchPath = "Lower Red Path";
+                } else if (Constants.UPPER_NEUTRAL.isPoseWithinArea(currentBotPose)) {
+                    trenchPath = "Upper Neutral Red Path";
+                } else if (Constants.LOWER_NEUTRAL.isPoseWithinArea(currentBotPose)) {
+                    trenchPath = "Lower Neutral Red Path";
+                }
+                break;
+        }
+        return trenchPath;
     }
 }

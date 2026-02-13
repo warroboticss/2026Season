@@ -13,14 +13,14 @@ import frc.robot.Constants;
 // all device ids are temporary and not canon
 
 public class Shooter extends SubsystemBase{
-    static final TalonFX rollersMain = new TalonFX(0);
-    static final TalonFX rollerFollower = new TalonFX(1);
-    static final TalonFX shooterMain = new TalonFX(2);
-    static final TalonFX shooterFollower = new TalonFX(3);
-    static final TalonFX hoodAngler = new TalonFX(4);
-    static final TalonFX mouth = new TalonFX(5);
-    final MotionMagicVoltage m_angleRequest = new MotionMagicVoltage(0.0);
-    final MotionMagicVelocityVoltage m_shooterRequest = new MotionMagicVelocityVoltage(0.0);
+    private final TalonFX rollersMain = new TalonFX(0);
+    private final TalonFX rollerFollower = new TalonFX(1);
+    private final TalonFX shooterMain = new TalonFX(2);
+    private final TalonFX shooterFollower = new TalonFX(3);
+    private final TalonFX hoodAngler = new TalonFX(4);
+    private final TalonFX mouth = new TalonFX(5);
+    private final MotionMagicVoltage m_angleRequest = new MotionMagicVoltage(0.0);
+    private final MotionMagicVelocityVoltage m_shooterRequest = new MotionMagicVelocityVoltage(0.0);
 
     private double desiredShooterRPS = Constants.SHOOTER_DEFAULT_RPS;
 
@@ -32,7 +32,7 @@ public class Shooter extends SubsystemBase{
 
         // tune this
         var shooterConfigs = talonFXConfigsShooter.Slot0;
-        shooterConfigs.kS = 0.25; // Add 0.25 V output to overcome static friction
+        shooterConfigs.kS = 0.25; // Add 0.25 V output to overcome private friction
         shooterConfigs.kV = 0.12; // A velocity target of 1 rps results in 0.12 V output
         shooterConfigs.kA = 0.01; // An acceleration of 1 rps/s requires 0.01 V output
         shooterConfigs.kP = 4.8; // A position error of 2.5 rotations results in 12 V output

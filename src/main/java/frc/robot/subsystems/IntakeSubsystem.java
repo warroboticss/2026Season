@@ -9,10 +9,10 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 
 public class IntakeSubsystem extends SubsystemBase {
     // IDs not added yet, do not forget!
-	private static TalonFX leftMotor = new TalonFX(0);
-	private static TalonFX rightMotor = new TalonFX(0);
-    private static TalonFX primaryIntakeMotor = new TalonFX(0);
-    final static MotionMagicVoltage m_angleRequest = new MotionMagicVoltage(0.0);
+	private final TalonFX leftMotor = new TalonFX(0);
+	private final TalonFX rightMotor = new TalonFX(0);
+    private final TalonFX primaryIntakeMotor = new TalonFX(0);
+    private final MotionMagicVoltage m_angleRequest = new MotionMagicVoltage(0.0);
 	
     public IntakeSubsystem() {
         rightMotor.setControl(new Follower(0, MotorAlignmentValue.Aligned));
@@ -37,15 +37,15 @@ public class IntakeSubsystem extends SubsystemBase {
         leftMotor.getConfigurator().apply(talonFXConfigsShooter);
     }
 
-	public static void beginIntake(double speed){
+	public void runIntake(double speed){
 	    primaryIntakeMotor.set(speed);
     }
 
-    public static void ceaseAndDesistIntake(){
+    public void stopIntake(){
 	    primaryIntakeMotor.set(0);
     }
 	
-	public static void setIntakePosition(double angle) {
+	public void setIntakePosition(double angle) {
 		leftMotor.setControl(m_angleRequest.withPosition(angle));
     }
 }

@@ -7,15 +7,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Shooter;
 import frc.robot.Constants;
-import frc.robot.LimelightHelpers;
-import frc.robot.Util.RectanglePoseArea;
 
 public class ShootOnTheMoveCmd extends Command {
-    private static Shooter shooter;
-    public static Pose2d shooterTarget;
+    private final Shooter shooter;
+    private static Pose2d shooterTarget;
     
     public ShootOnTheMoveCmd(Shooter shooter) {
-        ShootOnTheMoveCmd.shooter = shooter;
+        this.shooter = shooter;
         addRequirements(shooter);
     }
     
@@ -46,9 +44,9 @@ public class ShootOnTheMoveCmd extends Command {
 
         if (target.getX() > 0.0) {
             double distance = Limelight.getAbsoluteDistanceFromTarget(target);
-            double timeOfFlight = 0; //regression go here
-            double angularVelocity = 0; //regression go here
-            double hoodAngle = 0; //regression go here
+            double timeOfFlight = 0 * distance; //regression go here
+            double angularVelocity = 0 * distance; //regression go here
+            double hoodAngle = 0 * distance; //regression go here
 
             shooter.setAngle(hoodAngle);
             shooter.setShooter(angularVelocity);

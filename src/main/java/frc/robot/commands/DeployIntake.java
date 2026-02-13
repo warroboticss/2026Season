@@ -1,29 +1,28 @@
-//help me help me help me help e help mee help mm
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.IntakeSubsystem;
 
 public class DeployIntake extends Command {
-    private static IntakeSubsystem intake;
+    // Deploy then intake. Stop spin and retract on release.
+    private final IntakeSubsystem intake;
 
     public DeployIntake(IntakeSubsystem intake) {
-        DeployIntake.intake = intake;
+        this.intake = intake;
         addRequirements(intake);
     }
 
-    // While ltrigger held- Deploy then feeding. Stop spin and retract on release.
     public void execute() {
-        IntakeSubsystem.setIntakePosition(999999);
-        IntakeSubsystem.beginIntake(5);
+        intake.setIntakePosition(999999); // dummy value
+        intake.runIntake(5); // dummy value
     }
 
     public boolean isFinished(){
         return false;
     }
 
-    public void end() {
-        IntakeSubsystem.ceaseAndDesistIntake();
-        IntakeSubsystem.setIntakePosition(99999);
+    public void end(boolean interrupted) {
+        intake.stopIntake();
+        intake.setIntakePosition(99999); // dummy value
     }
 }
