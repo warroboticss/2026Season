@@ -14,7 +14,9 @@ public class HomeClimberCmd extends Command{
 
     @Override
     public void execute(){
-        climber.home();
+        if (!climber.getKeepClimbing()) {
+            climber.home();
+        }
     }
 
     @Override

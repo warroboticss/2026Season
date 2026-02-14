@@ -53,6 +53,7 @@ public class ShootOnTheMoveCmd extends Command {
             Translation2d targetOffset = Limelight.getTargetOffset(timeOfFlight);
             shooterTarget = new Pose2d(target.getX() + targetOffset.getX(), target.getY() + targetOffset.getY(), new Rotation2d(0.0));
             if (Math.abs(Limelight.getHeadingError(shooterTarget)) < 0.08) { // (if error is less than 5 deg) 
+                shooter.setShooting(true);
                 shooter.setRoller(0.5); // pick number for this
                 shooter.setMouth(0.5); // pick number for this
             }

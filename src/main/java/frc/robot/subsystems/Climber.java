@@ -6,6 +6,7 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
@@ -14,6 +15,7 @@ public class Climber extends SubsystemBase {
     private final MotionMagicVoltage angleRequest = new MotionMagicVoltage(0.0);
     private final DigitalInput home = new DigitalInput(0);
     public Boolean is_home = false;
+    public Boolean keepClimbing = false;
 
     public Climber() {
         var talonFXConfigs = new TalonFXConfiguration();
@@ -48,7 +50,16 @@ public class Climber extends SubsystemBase {
     }
 
     public Command setClimber(double distance) {
-        return this.run(() -> climber.setControl(angleRequest.withPosition(distance*Constants.ROTATIONS_PER_INCH_CLIMBER)));
+        return this.run(() -> climber.setControl(angleRequest.withPosition(distance*Constants.ROTATIONS_PER_INCH_CLIMBER))).andThen(new InstantCommand(() -> {keepClimbing = true;}));
     }
+
+    public void setKeepClimbing(boolean state) {
+        keepClimbing = state;
+    }
+
+    public boolean getKeepClimbing() {
+        return keepClimbing;
+    }
+
 
 }

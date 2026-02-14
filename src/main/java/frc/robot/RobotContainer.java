@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -63,7 +64,7 @@ public class RobotContainer {
     public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     private final Shooter shooter = new Shooter();
     private final IntakeSubsystem intake = new IntakeSubsystem();
-    private final Climber climber = new Climber();
+    public final Climber climber = new Climber();
     // private final ElasticSubsystem elasticSubsystem = new ElasticSubsystem();
     // private final Limelight vision = new Limelight(drivetrain);
     // private final MatchStateManager matchStateManager = new MatchStateManager();
@@ -80,6 +81,9 @@ public class RobotContainer {
                                     .withRotationalRate(ShootOnTheMoveCmd.getTargetAngle() * kP_feedback);}
             ), drivetrain), new ShootOnTheMoveCmd(shooter)
     );
+
+    Command autoClimb = new ParallelCommandGroup(climber.setClimber(Constants.CLIMBER_MAX_HEIGHT), GeneratePath(Limelight.getClimbPath()))
+                                                    .andThen(new InstantCommand(() -> {climber.setKeepClimbing(false);}));
 
     public Command GeneratePath(String pathName) {
         try {  // Load the path we want to pathfind to and follow

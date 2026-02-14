@@ -24,7 +24,7 @@ public class Limelight extends SubsystemBase {
     public static int fieldError = 0;
     public static int distanceError = 0;
     private Pose2d botpose;
-    private double confidence;
+    private static double confidence;
     private double targetDistance;
     // This creates our field so we ensure vision estimates are within its bounds
     private static final RectanglePoseArea field = 
@@ -144,5 +144,43 @@ public class Limelight extends SubsystemBase {
                 break;
         }
         return trenchPath;
+    }
+
+    public static String getClimbPath() {
+        Pose2d currentBotPose = getBotPose();
+        String climbPath = null;
+        switch (Constants.ALLIANCE) {
+            case "Blue":
+                if (Constants.UPPER_BLUE_AREA.isPoseWithinArea(currentBotPose)) {
+                    climbPath = "Upper Blue Climb";
+                } else if (Constants.LOWER_BLUE_AREA.isPoseWithinArea(currentBotPose)) {
+                    climbPath = "Lower Blue Climb";
+                }
+                break;
+            case "Red":
+                if (Constants.UPPER_RED_AREA.isPoseWithinArea(currentBotPose)) {
+                    climbPath = "Upper Red Climb";
+                } else if (Constants.LOWER_BLUE_AREA.isPoseWithinArea(currentBotPose)) {
+                    climbPath = "Lower Red Climb";
+                }
+                break;
+        }
+        return climbPath;
+    }
+
+    public static RectanglePoseArea getClimbZone() {
+        RectanglePoseArea poseArea = new RectanglePoseArea(new Translation2d(0,0), new Translation2d(0,0));
+        switch (Constants.ALLIANCE) {
+            case "Blue":
+                poseArea = Constants.BLUE_CLIMB_AREA;
+                break;
+            case "Red":
+                poseArea = Constants.RED_CLIMB_AREA;
+                break;
+        }
+        return poseArea;
+    }
+    public static double getConfidence() {
+        return confidence;
     }
 }
