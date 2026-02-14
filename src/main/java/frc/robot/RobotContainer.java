@@ -82,8 +82,9 @@ public class RobotContainer {
             ), drivetrain), new ShootOnTheMoveCmd(shooter)
     );
 
-    Command autoClimb = new ParallelCommandGroup(climber.setClimber(Constants.CLIMBER_MAX_HEIGHT), GeneratePath(Limelight.getClimbPath()))
-                                                    .andThen(new InstantCommand(() -> {climber.setKeepClimbing(false);}));
+    Command autoClimb = new ParallelCommandGroup(GeneratePath(Limelight.getClimbPath())).andThen(new InstantCommand(() -> {
+                                                climber.setKeepClimbing(false);}
+                                                ), climber.setClimber(Constants.CLIMBER_MAX_HEIGHT));
 
     public Command GeneratePath(String pathName) {
         try {  // Load the path we want to pathfind to and follow
