@@ -23,7 +23,7 @@ public class Shooter extends SubsystemBase{
     private final MotionMagicVelocityVoltage m_shooterRequest = new MotionMagicVelocityVoltage(0.0);
 
     private double desiredShooterRPS = Constants.SHOOTER_DEFAULT_RPS;
-    public static boolean shooting;
+    public boolean shooting;
 
     public Shooter(){
         rollerFollower.setControl(new Follower(0, MotorAlignmentValue.Aligned));
@@ -93,7 +93,7 @@ public class Shooter extends SubsystemBase{
         shooting = state;
     }
 
-    public static boolean getShooting() {
+    public boolean getShooting() {
         return shooting;
     }
 }

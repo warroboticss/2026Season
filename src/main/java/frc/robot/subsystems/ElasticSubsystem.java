@@ -21,43 +21,36 @@ public class ElasticSubsystem extends SubsystemBase{
     private final NetworkTable elasticTable;
     private final BooleanPublisher weWonAuto_Publisher;
     private final BooleanPublisher teamHubActive_Publisher;
-    private final IntegerPublisher fieldError_Publisher;
-    private final IntegerPublisher distanceError_Publisher;
+    // field errors and distance errors are already put on smartdashboard
     private final DoublePublisher velocityPublisher;
     private final DoublePublisher voltagePublisher;
     private final Field2d m_field = new Field2d();
+    private final Limelight limelight;
     // private final BooleanPublisher matchState_Publisher;
     // private final BooleanSubscriber matchState_Subscriber;
 
 
 
-    public ElasticSubsystem() {
+    public ElasticSubsystem(Limelight limelight) {
+        this.limelight = limelight;
+        // we need to fix matchstatemanager
         elasticTable = NetworkTableInstance.getDefault().getTable("elastic_datatable");
         weWonAuto_Publisher = elasticTable.getBooleanTopic("weWonAuto").publish();
         teamHubActive_Publisher = elasticTable.getBooleanTopic("teamHubActive").publish();
-        fieldError_Publisher = elasticTable.getIntegerTopic("fieldError").publish();
-        distanceError_Publisher = elasticTable.getIntegerTopic("distanceError").publish();
         velocityPublisher = elasticTable.getDoubleTopic("Velocity").publish();
         voltagePublisher = elasticTable.getDoubleTopic("Voltage").publish();
 
     }
 
-    // ahadu, who won auto has been moved to robot.java for simplicity so we dont call it 1,000,000 times
-    // it gets set once teleopinit starts, refrence it from Constants.WE_WON_AUTO
-
     @Override
     public void periodic() {
         // periodically gets/sets data
-        boolean matchstate = MatchStateManager.getActive();
         //boolean weWonAuto = ElasticSubsystem.getWeWonAuto();
         //weWonAuto_Publisher.set(weWonAuto);
-        teamHubActive_Publisher.set(matchstate);
-        fieldError_Publisher.set(Limelight.fieldError);
-        distanceError_Publisher.set(Limelight.distanceError);
-        velocityPublisher.set(Limelight.getBotSpeed());
+        velocityPublisher.set(limelight.getBotSpeed());
         voltagePublisher.set(RobotController.getBatteryVoltage());
 
         SmartDashboard.putData("Field", m_field);
-        m_field.setRobotPose(Limelight.getBotPose());
+        m_field.setRobotPose(limelight.getBotPose());
     }
 }

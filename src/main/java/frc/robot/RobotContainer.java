@@ -22,7 +22,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-
+import frc.robot.Util.BotState;
 import frc.robot.commands.DeployIntake;
 import frc.robot.commands.HomeClimberCmd;
 import frc.robot.commands.ShootOnTheMoveCmd;
@@ -61,12 +61,15 @@ public class RobotContainer {
     private final Trigger rightTrigger = controller.rightTrigger();
     private final Trigger leftTrigger = controller.leftTrigger();
 
+    public final BotState botState = new BotState();
     public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     private final Shooter shooter = new Shooter();
     private final IntakeSubsystem intake = new IntakeSubsystem();
     public final Climber climber = new Climber();
+    public final Limelight limelight = new Limelight(drivetrain, botState);
+
+    private final ShootOnTheMoveCmd shootOnTheMove = new ShootOnTheMoveCmd(shooter, limelight, botState);
     // private final ElasticSubsystem elasticSubsystem = new ElasticSubsystem();
-    // private final Limelight vision = new Limelight(drivetrain);
     // private final MatchStateManager matchStateManager = new MatchStateManager();
     
     public boolean isFollowingPath = false;
@@ -78,11 +81,11 @@ public class RobotContainer {
             double kP_feedback = 0.0; // tune this
             return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
                                     .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
-                                    .withRotationalRate(ShootOnTheMoveCmd.getTargetAngle() * kP_feedback);}
-            ), drivetrain), new ShootOnTheMoveCmd(shooter)
+                                    .withRotationalRate(shootOnTheMove.getTargetAngle() * kP_feedback);}
+            ), drivetrain), shootOnTheMove
     );
 
-    Command autoClimb = new ParallelCommandGroup(GeneratePath(Limelight.getClimbPath())).andThen(new InstantCommand(() -> {
+    Command autoClimb = new ParallelCommandGroup(GeneratePath(limelight.getClimbPath())).andThen(new InstantCommand(() -> {
                                                 climber.setKeepClimbing(false);}
                                                 ), climber.setClimber(Constants.CLIMBER_MAX_HEIGHT));
 
@@ -110,7 +113,7 @@ public class RobotContainer {
         a.onTrue(Commands.runOnce(()-> {
             if (!isFollowingPath) {
                 isFollowingPath = true;
-                String path = Limelight.getTrenchPath();
+                String path = limelight.getTrenchPath();
                 if (path != null) {
                     Command limelightPath = GeneratePath(path);
                     CommandScheduler.getInstance().schedule(limelightPath.andThen(() -> isFollowingPath = false));

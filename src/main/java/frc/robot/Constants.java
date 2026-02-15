@@ -4,8 +4,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.Util.RectanglePoseArea;
 
 public class Constants {
-    public static boolean WE_WON_AUTO = false;
-    public static String ALLIANCE = "";
 
     public static double SHOOTER_DEFAULT_RPS = 33.33; // 2000 rpm
     public static double ROTATIONS_PER_INCH_CLIMBER = 0.0; // fix me

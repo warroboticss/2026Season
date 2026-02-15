@@ -9,27 +9,34 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Util.BotState;
 import frc.robot.Util.RectanglePoseArea;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
 
 public class Limelight extends SubsystemBase {
     // defines all variables used for vison pose estimates
-    private static CommandSwerveDrivetrain drivetrain;
-    Alliance alliance;
-    private static String ll = "limelight";
+    private final CommandSwerveDrivetrain drivetrain;
+    private final BotState botState;
+    private final String ll = "limelight";
+
     private Boolean enable = true;
     private Boolean trust = false;
+
     // error buildups (number of errors)
-    public static int fieldError = 0;
-    public static int distanceError = 0;
+    public int fieldError = 0;
+    public int distanceError = 0;
+
     private Pose2d botpose;
-    private static double confidence;
+    private double confidence;
     private double targetDistance;
+
     // This creates our field so we ensure vision estimates are within its bounds
     private static final RectanglePoseArea field = 
         new RectanglePoseArea(new Translation2d(0.0, 0.0), new Translation2d(16.54, 8.02));
-    public Limelight(CommandSwerveDrivetrain drivetrain) {
+
+    public Limelight(CommandSwerveDrivetrain drivetrain, BotState botState) {
+        this.botState = botState;
         this.drivetrain = drivetrain;
         SmartDashboard.putNumber("Field Error", fieldError);
         SmartDashboard.putNumber("Limelight Error", distanceError);
@@ -62,10 +69,6 @@ public class Limelight extends SubsystemBase {
         }
     }
 
-    public void setAlliance(Alliance alliance){
-        this.alliance = alliance;
-    }
-
     public void useLimeLight(boolean enable){
         this.enable = enable;
     }
@@ -74,14 +77,14 @@ public class Limelight extends SubsystemBase {
         this.trust = trust;
     }
 
-    public static double getAbsoluteDistanceFromTarget(Pose2d target) {
+    public double getAbsoluteDistanceFromTarget(Pose2d target) {
         Pose2d botPose = drivetrain.getState().Pose;
         double distanceToTarget = target.getTranslation().getDistance(botPose.getTranslation());
         // returns the absolute linear distance to the target for our regressions
         return Math.abs(distanceToTarget);
     }
 
-    public static Translation2d getTargetOffset(double flightTime) {
+    public Translation2d getTargetOffset(double flightTime) {
         // gets robot motion
         double vx_robotRelative = drivetrain.getState().Speeds.vxMetersPerSecond;
         double vy_robotRelative = drivetrain.getState().Speeds.vyMetersPerSecond;
@@ -94,7 +97,7 @@ public class Limelight extends SubsystemBase {
         return new Translation2d(-vx_fieldRelative * flightTime, -vy_fieldRelative * flightTime); 
     }
     
-    public static double getHeadingError(Pose2d target) {
+    public double getHeadingError(Pose2d target) {
         Pose2d botPose = drivetrain.getState().Pose;
         double dist_x = target.getX() - botPose.getX();
         double dist_y = target.getY() - botPose.getY();
@@ -106,20 +109,20 @@ public class Limelight extends SubsystemBase {
         return angleError;
     }
 
-    public static Pose2d getBotPose() {
+    public Pose2d getBotPose() {
         return drivetrain.getState().Pose;
     }
 
-    public static double getBotSpeed() {
+    public double getBotSpeed() {
         double botVxMps = drivetrain.getState().Speeds.vxMetersPerSecond;
         double botVyMps = drivetrain.getState().Speeds.vyMetersPerSecond;
         return Math.sqrt(Math.pow(botVxMps, 2) + Math.pow(botVyMps, 2));
     }
 
-    public static String getTrenchPath() {
+    public String getTrenchPath() {
         Pose2d currentBotPose = getBotPose();
         String trenchPath = null;
-        switch (Constants.ALLIANCE) {
+        switch (botState.ALLIANCE) {
             case "Blue":
                 if (Constants.UPPER_BLUE_AREA.isPoseWithinArea(currentBotPose)) {
                     trenchPath = "Upper Blue Path";
@@ -146,10 +149,10 @@ public class Limelight extends SubsystemBase {
         return trenchPath;
     }
 
-    public static String getClimbPath() {
+    public String getClimbPath() {
         Pose2d currentBotPose = getBotPose();
         String climbPath = null;
-        switch (Constants.ALLIANCE) {
+        switch (botState.ALLIANCE) {
             case "Blue":
                 if (Constants.UPPER_BLUE_AREA.isPoseWithinArea(currentBotPose)) {
                     climbPath = "Upper Blue Climb";
@@ -168,9 +171,9 @@ public class Limelight extends SubsystemBase {
         return climbPath;
     }
 
-    public static RectanglePoseArea getClimbZone() {
+    public RectanglePoseArea getClimbZone() {
         RectanglePoseArea poseArea = new RectanglePoseArea(new Translation2d(0,0), new Translation2d(0,0));
-        switch (Constants.ALLIANCE) {
+        switch (botState.ALLIANCE) {
             case "Blue":
                 poseArea = Constants.BLUE_CLIMB_AREA;
                 break;
@@ -179,8 +182,5 @@ public class Limelight extends SubsystemBase {
                 break;
         }
         return poseArea;
-    }
-    public static double getConfidence() {
-        return confidence;
     }
 }

@@ -5,10 +5,14 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 
 public class MatchStateManager extends SubsystemBase {
-    public static boolean active; // is our hub active?
+    public boolean active; // is our hub active?
     boolean whoWonAuto; // get whoWonAuto from ElasticSubsystem
 
-    public static boolean getActive() {
+    public MatchStateManager() {
+        
+    }
+
+    public boolean getActive() {
         return active;
     }
 
