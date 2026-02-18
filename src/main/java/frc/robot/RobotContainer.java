@@ -54,12 +54,17 @@ public class RobotContainer {
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
     private final CommandXboxController controller = new CommandXboxController(0);
+    private final Trigger povUp = controller.povUp();
+    private final Trigger povDown = controller.povDown();
     private final Trigger a = controller.a();
     private final Trigger b = controller.b();
     private final Trigger x = controller.x();
     private final Trigger y = controller.y();
     private final Trigger rightTrigger = controller.rightTrigger();
     private final Trigger leftTrigger = controller.leftTrigger();
+    private final Trigger leftBumper = controller.leftBumper();
+    private final Trigger rightBumper = controller.rightBumper();
+
 
     public final BotState botState = new BotState();
     public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
@@ -110,7 +115,7 @@ public class RobotContainer {
     }    
     
     private void configureBindings() {
-        a.onTrue(Commands.runOnce(()-> {
+        rightBumper.onTrue(Commands.runOnce(()-> {
             if (!isFollowingPath) {
                 isFollowingPath = true;
                 String path = limelight.getTrenchPath();
@@ -122,6 +127,7 @@ public class RobotContainer {
         }));
 
         rightTrigger.whileTrue(shootAndAlign);
+        x.whileTrue(autoClimb);
         leftTrigger.whileTrue(new DeployIntake(intake));
         // reset the field-centric heading on left bumper press
         controller.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
