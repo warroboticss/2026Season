@@ -1,0 +1,28 @@
+CANIVORE BUS:
+0: Pigeon
+1: FL-Encoder
+2: FR-Encoder
+3: BL-Encoder
+4: BR-Encoder
+
+5: FL-Little
+6: FL-Big
+7: FR-Little
+8: FR-Big
+9: BL-Little
+10: BL-Big
+11: BR-Little
+12: BR-Big
+
+RIO BUS:
+1:  PDH
+13:  Left Intake Deployer (x44)
+14:  Right Intake Deployer (x44)
+15:  Left Intake Conveyor (x44)
+16:  Right Intake Conveyor (x44)
+17:  Front Fuel Intake (x44)
+18:  Indexer (x44)
+19:  Climber (x44)
+20:  Left Shooter (x60)
+21:  Right Shooter (x60)
+22: Shooter Hood (x44)
