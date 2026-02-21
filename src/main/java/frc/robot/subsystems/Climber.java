@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
 public class Climber extends SubsystemBase {
-    private final TalonFX climber = new TalonFX(0);
+    private final TalonFX climber = new TalonFX(19);
     private final MotionMagicVoltage angleRequest = new MotionMagicVoltage(0.0);
     private final DigitalInput home = new DigitalInput(0);
     public Boolean is_home = false;

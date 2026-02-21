@@ -62,9 +62,9 @@ public class RobotContainer {
     private final Trigger leftTrigger = controller.leftTrigger();
 
     public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
-    private final Shooter shooter = new Shooter();
+    // private final Shooter shooter = new Shooter();
     private final IntakeSubsystem intake = new IntakeSubsystem();
-    public final Climber climber = new Climber();
+    // public final Climber climber = new Climber();
     // private final ElasticSubsystem elasticSubsystem = new ElasticSubsystem();
     // private final Limelight vision = new Limelight(drivetrain);
     // private final MatchStateManager matchStateManager = new MatchStateManager();
@@ -73,7 +73,7 @@ public class RobotContainer {
 
     private SendableChooser<Command> autoChooser; 
 
-    Command shootAndAlign = new ParallelCommandGroup(
+    /*Command shootAndAlign = new ParallelCommandGroup(
         new RunCommand(() -> drivetrain.applyRequest(() -> { 
             double kP_feedback = 0.0; // tune this
             return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
@@ -84,7 +84,7 @@ public class RobotContainer {
 
     Command autoClimb = new ParallelCommandGroup(climber.setClimber(Constants.CLIMBER_MAX_HEIGHT), GeneratePath(Limelight.getClimbPath()))
                                                     .andThen(new InstantCommand(() -> {climber.setKeepClimbing(false);}));
-
+    */
     public Command GeneratePath(String pathName) {
         try {  // Load the path we want to pathfind to and follow
             PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
@@ -101,12 +101,12 @@ public class RobotContainer {
     public RobotContainer() {
         isFollowingPath = false;
         autoChooser = AutoBuilder.buildAutoChooser("Example");
-        climber.setDefaultCommand(new HomeClimberCmd(climber));
+        //climber.setDefaultCommand(new HomeClimberCmd(climber));
         configureBindings();
     }    
     
     private void configureBindings() {
-        a.onTrue(Commands.runOnce(()-> {
+        /*a.onTrue(Commands.runOnce(()-> {
             if (!isFollowingPath) {
                 isFollowingPath = true;
                 String path = Limelight.getTrenchPath();
@@ -115,9 +115,9 @@ public class RobotContainer {
                     CommandScheduler.getInstance().schedule(limelightPath.andThen(() -> isFollowingPath = false));
                 }
             }
-        }));
+        }));*/
 
-        rightTrigger.whileTrue(shootAndAlign);
+        //rightTrigger.whileTrue(shootAndAlign);
         leftTrigger.whileTrue(new DeployIntake(intake));
         // reset the field-centric heading on left bumper press
         controller.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));

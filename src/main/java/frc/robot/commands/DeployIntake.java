@@ -13,8 +13,8 @@ public class DeployIntake extends Command {
     }
 
     public void execute() {
-        intake.setIntakePosition(999999); // dummy value
-        intake.runIntake(5); // dummy value
+        intake.setIntakePosition(0.1); // dummy value
+        intake.runIntake(0.5); // dummy value
     }
 
     public boolean isFinished(){
@@ -23,6 +23,6 @@ public class DeployIntake extends Command {
 
     public void end(boolean interrupted) {
         intake.stopIntake();
-        intake.setIntakePosition(99999); // dummy value
+        intake.setIntakePosition(0); // dummy value
     }
 }

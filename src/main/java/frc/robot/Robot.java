@@ -53,7 +53,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
   m_robotContainer.isFollowingPath = false;
-  CommandScheduler.getInstance().schedule(new GetDownCmd(m_robotContainer.climber));
+  //CommandScheduler.getInstance().schedule(new GetDownCmd(m_robotContainer.climber));
   // checks if we won auto
   if (Constants.ALLIANCE.toUpperCase().contains(DriverStation.getGameSpecificMessage())) {
     Constants.WE_WON_AUTO = true;

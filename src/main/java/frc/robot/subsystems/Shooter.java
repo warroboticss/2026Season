@@ -13,12 +13,12 @@ import frc.robot.Constants;
 // all device ids are temporary and not canon
 
 public class Shooter extends SubsystemBase{
-    private final TalonFX rollersMain = new TalonFX(0);
-    private final TalonFX rollerFollower = new TalonFX(1);
-    private final TalonFX shooterMain = new TalonFX(2);
-    private final TalonFX shooterFollower = new TalonFX(3);
-    private final TalonFX hoodAngler = new TalonFX(4);
-    private final TalonFX mouth = new TalonFX(5);
+    private final TalonFX rollersMain = new TalonFX(16);
+    private final TalonFX rollerFollower = new TalonFX(15);
+    private final TalonFX shooterMain = new TalonFX(21);
+    private final TalonFX shooterFollower = new TalonFX(20);
+    private final TalonFX hoodAngler = new TalonFX(22);
+    private final TalonFX mouth = new TalonFX(18);
     private final MotionMagicVoltage m_angleRequest = new MotionMagicVoltage(0.0);
     private final MotionMagicVelocityVoltage m_shooterRequest = new MotionMagicVelocityVoltage(0.0);
 
@@ -26,8 +26,8 @@ public class Shooter extends SubsystemBase{
     public static boolean shooting;
 
     public Shooter(){
-        rollerFollower.setControl(new Follower(0, MotorAlignmentValue.Aligned));
-        shooterFollower.setControl(new Follower(0, MotorAlignmentValue.Aligned));
+        rollerFollower.setControl(new Follower(16, MotorAlignmentValue.Aligned));
+        shooterFollower.setControl(new Follower(21, MotorAlignmentValue.Aligned));
 
         var talonFXConfigsShooter = new TalonFXConfiguration();
 
