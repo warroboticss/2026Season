@@ -50,7 +50,10 @@ public class Climber extends SubsystemBase {
     }
 
     public Command setClimber(double distance) {
-        return this.run(() -> climber.setControl(angleRequest.withPosition(distance*Constants.ROTATIONS_PER_INCH_CLIMBER))).andThen(new InstantCommand(() -> {keepClimbing = true;}));
+        return this.run(() -> climber.setControl(angleRequest.withPosition(distance*Constants.ROTATIONS_PER_INCH_CLIMBER)))
+                                .andThen(new InstantCommand(() -> {
+                                keepClimbing = true;
+                            }));
     }
 
     public void setKeepClimbing(boolean state) {

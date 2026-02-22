@@ -20,7 +20,7 @@ RIO BUS:
 14:  Right Intake Deployer (x44)
 15:  Left Intake Conveyor (x44)
 16:  Right Intake Conveyor (x44)
-17:  Front Fuel Intake (x44)
+17:  Intake Roller (x44)
 18:  Indexer (x44)
 19:  Climber (x44)
 20:  Left Shooter (x60)

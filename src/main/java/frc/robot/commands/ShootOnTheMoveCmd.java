@@ -7,21 +7,26 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Shooter;
 import frc.robot.Constants;
+import frc.robot.Util.BotState;
 
 public class ShootOnTheMoveCmd extends Command {
     private final Shooter shooter;
     private static Pose2d shooterTarget;
+    private final Limelight limelight;
+    private final BotState botState;
     
-    public ShootOnTheMoveCmd(Shooter shooter) {
+    public ShootOnTheMoveCmd(Shooter shooter, Limelight limelight, BotState botState) {
         this.shooter = shooter;
+        this.limelight = limelight;
+        this.botState = botState;
         addRequirements(shooter);
     }
     
     public void execute() {
-        Pose2d botPose = Limelight.getBotPose();
+        Pose2d botPose = limelight.getBotPose();
         // picks our target
         Pose2d target = new Pose2d(0.0, 0.0, new Rotation2d(0.0));
-        switch (Constants.ALLIANCE) {
+        switch (botState.ALLIANCE) {
             case "Blue":
                 if (Constants.BLUE_AREA.isPoseWithinArea(botPose)) {
                     target = new Pose2d(4.620, 4.030, new Rotation2d(0.0));
@@ -43,27 +48,27 @@ public class ShootOnTheMoveCmd extends Command {
         }
 
         if (target.getX() > 0.0) {
-            double distance = Limelight.getAbsoluteDistanceFromTarget(target);
+            double distance = limelight.getAbsoluteDistanceFromTarget(target);
             double timeOfFlight = 0 * distance; //regression go here
             double angularVelocity = 0 * distance; //regression go here
             double hoodAngle = 0 * distance; //regression go here
 
             shooter.setAngle(hoodAngle);
             shooter.setShooter(angularVelocity);
-            Translation2d targetOffset = Limelight.getTargetOffset(timeOfFlight);
+            Translation2d targetOffset = limelight.getTargetOffset(timeOfFlight);
             shooterTarget = new Pose2d(target.getX() + targetOffset.getX(), target.getY() + targetOffset.getY(), new Rotation2d(0.0));
-            if (Math.abs(Limelight.getHeadingError(shooterTarget)) < 0.08) { // (if error is less than 5 deg) 
+            if (Math.abs(limelight.getHeadingError(shooterTarget)) < 0.08) { // (if error is less than 5 deg) 
                 shooter.setShooting(true);
                 shooter.setRoller(0.5); // pick number for this
                 shooter.setMouth(0.5); // pick number for this
             }
         } else {
-            shooterTarget = Limelight.getBotPose(); // aim nowhere
+            shooterTarget = limelight.getBotPose(); // aim nowhere
         }
     }
 
-    public static double getTargetAngle() {
-        return Limelight.getHeadingError(shooterTarget);
+    public double getTargetAngle() {
+        return limelight.getHeadingError(shooterTarget);
     }
 
     public boolean isFinished() {

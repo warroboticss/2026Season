@@ -16,7 +16,7 @@ public class IntakeSubsystem extends SubsystemBase {
     private double intakePosition;
 
     public IntakeSubsystem() {
-        rightMotor.setControl(new Follower(13, MotorAlignmentValue.Aligned));
+        rightMotor.setControl(new Follower(13, MotorAlignmentValue.Opposed));
 
         var talonFXConfigsIntake = new TalonFXConfiguration();
 
@@ -27,7 +27,7 @@ public class IntakeSubsystem extends SubsystemBase {
         intakeConfigs.kS = 0.25; // Add 0.25 V output to overcome static friction
         intakeConfigs.kV = 1.95; // A velocity target of 1 rps results in 0.12 V output
         intakeConfigs.kA = 0.06; // An acceleration of 1 rps/s requires 0.01 V output
-        intakeConfigs.kP = 6.27; // A position error of 2.5 rotations results in 12 V output
+        intakeConfigs.kP = 6;; // A position error of 2.5 rotations results in 12 V output
         intakeConfigs.kI = 0; // no output for integrated error
         intakeConfigs.kD = 0.25; // A velocity error of 1 rps results in 0.1 V output
 
@@ -39,10 +39,6 @@ public class IntakeSubsystem extends SubsystemBase {
 
         leftMotor.getConfigurator().apply(talonFXConfigsIntake);
     }
-    @Override
-    public void periodic() {
-		leftMotor.setControl(m_angleRequest.withPosition(intakePosition));
-    }
 
 	public void runIntake(double speed){
 	    primaryIntakeMotor.set(speed);
@@ -53,6 +49,6 @@ public class IntakeSubsystem extends SubsystemBase {
     }
 	
 	public void setIntakePosition(double angle) {
-        intakePosition = angle;
+        leftMotor.setControl(m_angleRequest.withPosition(angle));
     }
 }

@@ -18,7 +18,7 @@ public class Robot extends TimedRobot {
   public Robot() {
     m_robotContainer = new RobotContainer();
     PathfindingCommand.warmupCommand().schedule();
-    Constants.ALLIANCE = DriverStation.getAlliance().get().toString();
+    /*m_robotContainer.botState.ALLIANCE = DriverStation.getAlliance().get().toString();*/
   }
 
   @Override
@@ -55,7 +55,7 @@ public class Robot extends TimedRobot {
   m_robotContainer.isFollowingPath = false;
   //CommandScheduler.getInstance().schedule(new GetDownCmd(m_robotContainer.climber));
   // checks if we won auto
-  if (Constants.ALLIANCE.toUpperCase().contains(DriverStation.getGameSpecificMessage())) {
+  /*if (Constants.ALLIANCE.toUpperCase().contains(DriverStation.getGameSpecificMessage())) {
     Constants.WE_WON_AUTO = true;
   } else {
     Constants.WE_WON_AUTO = false;
@@ -63,7 +63,7 @@ public class Robot extends TimedRobot {
   
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
-    }
+    }*/
   }
 
   @Override
