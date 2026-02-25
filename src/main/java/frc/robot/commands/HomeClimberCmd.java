@@ -14,13 +14,15 @@ public class HomeClimberCmd extends Command{
 
     @Override
     public void execute(){
-        if (!climber.getKeepClimbing()) {
-            climber.home();
-        }
+        // if (!climber.getKeepClimbing()) {
+        //     climber.home();
+        // }
+        climber.set(0);
     }
 
-    @Override
-    public boolean isFinished(){
-        return climber.getHome();   
-    }
+    // @Override
+    // public boolean isFinished(){
+    //     //return climber.getHome();   
+    //     return false;
+    // }
 }

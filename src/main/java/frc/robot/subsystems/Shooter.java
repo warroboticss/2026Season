@@ -7,6 +7,7 @@ import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
@@ -26,7 +27,7 @@ public class Shooter extends SubsystemBase{
     public boolean shooting;
 
     public Shooter(){
-        rollerFollower.setControl(new Follower(16, MotorAlignmentValue.Aligned));
+        rollerFollower.setControl(new Follower(16, MotorAlignmentValue.Opposed));
         shooterFollower.setControl(new Follower(21, MotorAlignmentValue.Aligned));
 
         var talonFXConfigsShooter = new TalonFXConfiguration();
@@ -70,7 +71,7 @@ public class Shooter extends SubsystemBase{
 
     @Override
     public void periodic() {
-        shooterMain.setControl(m_shooterRequest.withVelocity(desiredShooterRPS));
+        //shooterMain.setControl(m_shooterRequest.withVelocity(desiredShooterRPS));
     }
 
     public void setRoller(double speed) {
@@ -96,4 +97,5 @@ public class Shooter extends SubsystemBase{
     public boolean getShooting() {
         return shooting;
     }
+ 
 }

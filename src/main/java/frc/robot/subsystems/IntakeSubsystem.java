@@ -27,15 +27,15 @@ public class IntakeSubsystem extends SubsystemBase {
         intakeConfigs.kS = 0.25; // Add 0.25 V output to overcome static friction
         intakeConfigs.kV = 1.95; // A velocity target of 1 rps results in 0.12 V output
         intakeConfigs.kA = 0.06; // An acceleration of 1 rps/s requires 0.01 V output
-        intakeConfigs.kP = 6;; // A position error of 2.5 rotations results in 12 V output
+        intakeConfigs.kP = 6.27; // A position error of 2.5 rotations results in 12 V output
         intakeConfigs.kI = 0; // no output for integrated error
         intakeConfigs.kD = 0.25; // A velocity error of 1 rps results in 0.1 V output
 
         // set Motion Magic settings
         var motionMagicConfigsIntake = talonFXConfigsIntake.MotionMagic;
-        motionMagicConfigsIntake.MotionMagicCruiseVelocity = 80;
-        motionMagicConfigsIntake.MotionMagicAcceleration = 160;
-        motionMagicConfigsIntake.MotionMagicJerk = 1200;
+        motionMagicConfigsIntake.MotionMagicCruiseVelocity = 2;
+        motionMagicConfigsIntake.MotionMagicAcceleration = 4;
+        motionMagicConfigsIntake.MotionMagicJerk = 40;
 
         leftMotor.getConfigurator().apply(talonFXConfigsIntake);
     }

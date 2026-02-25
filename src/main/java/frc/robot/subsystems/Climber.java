@@ -64,5 +64,9 @@ public class Climber extends SubsystemBase {
         return keepClimbing;
     }
 
+    public void set(double pos){
+        climber.set(0.5 * pos);
+    }
+
 
 }

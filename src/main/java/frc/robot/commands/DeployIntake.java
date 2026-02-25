@@ -13,8 +13,8 @@ public class DeployIntake extends Command {
     }
 
     public void execute() {
-        intake.setIntakePosition(2.0); // dummy value
-        intake.runIntake(0.5); // dummy value
+        intake.setIntakePosition(7.4167); // dummy value
+        intake.runIntake(0.8); // dummy value
     }
 
     public boolean isFinished(){
