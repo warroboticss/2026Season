@@ -28,18 +28,18 @@ public class Shooter extends SubsystemBase{
 
     public Shooter(){
         rollerFollower.setControl(new Follower(16, MotorAlignmentValue.Opposed));
-        shooterFollower.setControl(new Follower(21, MotorAlignmentValue.Aligned));
+        shooterFollower.setControl(new Follower(21, MotorAlignmentValue.Opposed));
 
         var talonFXConfigsShooter = new TalonFXConfiguration();
 
         // tune this
         var shooterConfigs = talonFXConfigsShooter.Slot0;
-        shooterConfigs.kS = 0.25; // Add 0.25 V output to overcome private friction
-        shooterConfigs.kV = 0.12; // A velocity target of 1 rps results in 0.12 V output
-        shooterConfigs.kA = 0.01; // An acceleration of 1 rps/s requires 0.01 V output
-        shooterConfigs.kP = 4.8; // A position error of 2.5 rotations results in 12 V output
+        shooterConfigs.kS = 0.21678; // Add 0.25 V output to overcome private friction
+        shooterConfigs.kV = 0.12259; // A velocity target of 1 rps results in 0.12 V output
+        shooterConfigs.kA = 0.005602; // An acceleration of 1 rps/s requires 0.01 V output
+        shooterConfigs.kP = 0; // A position error of 2.5 rotations results in 12 V output
         shooterConfigs.kI = 0; // no output for integrated error
-        shooterConfigs.kD = 0.1; // A velocity error of 1 rps results in 0.1 V output
+        shooterConfigs.kD = 0; // A velocity error of 1 rps results in 0.1 V output
 
         // set Motion Magic settings
         var motionMagicConfigsShooter = talonFXConfigsShooter.MotionMagic;
@@ -53,18 +53,18 @@ public class Shooter extends SubsystemBase{
 
         // tune this
         var angleConfigs = talonFXConfigsAngle.Slot0;
-        angleConfigs.kS = 0.25; // Add 0.25 V output to overcome static friction
+        angleConfigs.kS = 0.35; // Add 0.25 V output to overcome static friction
         angleConfigs.kV = 0.12; // A velocity target of 1 rps results in 0.12 V output
         angleConfigs.kA = 0.01; // An acceleration of 1 rps/s requires 0.01 V output
-        angleConfigs.kP = 4.8; // A position error of 2.5 rotations results in 12 V output
+        angleConfigs.kP = 0.4; // A position error of 2.5 rotations results in 12 V output
         angleConfigs.kI = 0; // no output for integrated error
         angleConfigs.kD = 0.1; // A velocity error of 1 rps results in 0.1 V output
 
         // set Motion Magic settings
         var motionMagicConfigsAngle = talonFXConfigsAngle.MotionMagic;
-        motionMagicConfigsAngle.MotionMagicCruiseVelocity = 5;
-        motionMagicConfigsAngle.MotionMagicAcceleration = 10;
-        motionMagicConfigsAngle.MotionMagicJerk = 120;
+        motionMagicConfigsAngle.MotionMagicCruiseVelocity = 1;
+        motionMagicConfigsAngle.MotionMagicAcceleration = 2;
+        motionMagicConfigsAngle.MotionMagicJerk = 20;
 
         hoodAngler.getConfigurator().apply(talonFXConfigsAngle);
     }
@@ -84,10 +84,23 @@ public class Shooter extends SubsystemBase{
 
     public void setAngle(double angle) {
         hoodAngler.setControl(m_angleRequest.withPosition(angle));
+        System.out.println(angle);
+    }
+
+    public double getHoodRotations(){
+        return hoodAngler.getPosition().getValueAsDouble();
+    }
+
+    public void setHoodPosition(){
+        hoodAngler.setPosition(0);
     }
 
     public void setMouth(double speed) {
         mouth.set(speed);
+    }
+
+    public void setHood(double speed) {
+        hoodAngler.set(speed);
     }
 
     public void setShooting(boolean state) {

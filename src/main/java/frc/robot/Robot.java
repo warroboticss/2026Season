@@ -17,7 +17,7 @@ public class Robot extends TimedRobot {
 
   public Robot() {
     m_robotContainer = new RobotContainer();
-    PathfindingCommand.warmupCommand().schedule();
+    //PathfindingCommand.warmupCommand().schedule();
     /*m_robotContainer.botState.ALLIANCE = DriverStation.getAlliance().get().toString();*/
   }
 

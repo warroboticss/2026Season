@@ -63,8 +63,8 @@ public class RobotContainer {
 
     public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     private final Shooter shooter = new Shooter();
-    private final IntakeSubsystem intake = new IntakeSubsystem();
-    public final Climber climber = new Climber();
+    //private final IntakeSubsystem intake = new IntakeSubsystem();
+    //public final Climber climber = new Climber();
     // private final ElasticSubsystem elasticSubsystem = new ElasticSubsystem();
     // private final Limelight vision = new Limelight(drivetrain);
     // private final MatchStateManager matchStateManager = new MatchStateManager();
@@ -101,7 +101,8 @@ public class RobotContainer {
     public RobotContainer() {
         isFollowingPath = false;
         autoChooser = AutoBuilder.buildAutoChooser("Example");
-        climber.setDefaultCommand(new HomeClimberCmd(climber));
+        shooter.setDefaultCommand(new ShootOnTheMoveCmd(shooter));
+       // climber.setDefaultCommand(new HomeClimberCmd(climber));
         configureBindings();
     }    
     
@@ -118,10 +119,12 @@ public class RobotContainer {
         }));*/
 
         //rightTrigger.whileTrue(shootAndAlign);
-        leftTrigger.whileTrue(new DeployIntake(intake));
-        // controller.povUp().whileTrue(new RunCommand(() -> climber.set(1)));
-        // controller.povDown().whileTrue(new RunCommand(() -> climber.set(-1)));
-        rightTrigger.onTrue(new RunCommand(() -> {shooter.setRoller(-0.4);}));
+        //leftTrigger.whileTrue(new DeployIntake(intake));
+        controller.povUp().whileTrue(new RunCommand(() -> {shooter.setHood(0.05); System.out.println(shooter.getHoodRotations());}));
+        controller.povDown().whileTrue(new RunCommand(() -> shooter.setHood(-0.05)));
+        x.whileTrue(new RunCommand(() -> {shooter.setAngle((2.5));}));
+        y.onTrue(new InstantCommand(() -> shooter.setHoodPosition()));
+        //rightTrigger.onTrue(new RunCommand(() -> {shooter.setRoller(-0.4); shooter.setMouth(0.3);}));
         // reset the field-centric heading on left bumper press
         controller.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
