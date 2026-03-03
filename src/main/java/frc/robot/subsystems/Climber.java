@@ -1,7 +1,12 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -18,25 +23,12 @@ public class Climber extends SubsystemBase {
     public Boolean keepClimbing = false;
 
     public Climber() {
-        var talonFXConfigs = new TalonFXConfiguration();
-        // set slot 0 gains
-        var slot0Configs = talonFXConfigs.Slot0;
-        slot0Configs.kS = 0.25; // Add 0.25 V output to overcome static friction
-        slot0Configs.kV = 0.12; // A velocity target of 1 rps results in 0.12 V output
-        slot0Configs.kA = 0.01; // An acceleration of 1 rps/s requires 0.01 V output
-        slot0Configs.kP = 4.8; // A position error of 2.5 rotations results in 12 V output
-        slot0Configs.kI = 0; // no output for integrated error
-        slot0Configs.kD = 0.1; // A velocity error of 1 rps results in 0.1 V output
-
-        // set Motion Magic settings
-        var motionMagicConfigs = talonFXConfigs.MotionMagic;
-        motionMagicConfigs.MotionMagicCruiseVelocity = 80; // Target cruise velocity of 80 rps
-        motionMagicConfigs.MotionMagicAcceleration = 160; // Target acceleration of 160 rps/s (0.5 seconds)
-        motionMagicConfigs.MotionMagicJerk = 1600; // Target jerk of 1600 rps/s/s (0.1 seconds)
-
-        climber.getConfigurator().apply(talonFXConfigs);        
+       configMotor(climber.getConfigurator());     
+       climber.optimizeBusUtilization();
     }
 
+
+    // methods
     public boolean getHome() {
         return home.get();
     }
@@ -69,4 +61,46 @@ public class Climber extends SubsystemBase {
     }
 
 
+    // configs
+    private static void configMotor(TalonFXConfigurator config) {
+    // Creating a new configuration to ensure we get the same results every time
+    var newConfig = new TalonFXConfiguration();
+
+    // Configure idle mode and polarity
+    var output = newConfig.MotorOutput;
+    output.Inverted = InvertedValue.Clockwise_Positive;
+    output.NeutralMode = NeutralModeValue.Brake;
+
+    // Set max voltage
+    var voltage = newConfig.Voltage;
+    voltage.PeakForwardVoltage = 12;
+    voltage.PeakReverseVoltage = -12;
+
+    // Set current limits
+    var current = newConfig.CurrentLimits;
+    current.StatorCurrentLimit = 120;
+    current.StatorCurrentLimitEnable = true;
+    current.SupplyCurrentLimit = 60;
+    current.SupplyCurrentLimitEnable = true;
+
+    // Configure PID in Slot 0
+    Slot0Configs slot0 = newConfig.Slot0;
+    slot0.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
+
+    slot0.kS = 0.25; 
+    slot0.kV = 0.12;
+    slot0.kA = 0.01;
+    slot0.kP = 4.8;
+    slot0.kI = 0;
+    slot0.kD = 0.1; 
+    
+    // Configuring MotionMagic
+    var motionMagic = newConfig.MotionMagic;
+    motionMagic.MotionMagicCruiseVelocity = 80.0;
+    motionMagic.MotionMagicAcceleration = 60.0;
+    motionMagic.MotionMagicJerk = 1600.0;
+
+    // Apply configuration
+    config.apply(newConfig, 0.050);
+  }
 }

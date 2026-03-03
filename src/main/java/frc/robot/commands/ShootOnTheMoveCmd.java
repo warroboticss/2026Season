@@ -1,8 +1,11 @@
 package frc.robot.commands;
 
+import java.util.function.Supplier;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Shooter;
@@ -12,12 +15,16 @@ import frc.robot.Util.BotState;
 public class ShootOnTheMoveCmd extends Command {
     private final Shooter shooter;
     private static Pose2d shooterTarget;
+    private Supplier<Double> speed;
+    private Supplier<Double> hoodRot;
     // private final Limelight limelight;
     // private final BotState botState;
     
     //public ShootOnTheMoveCmd(Shooter shooter, Limelight limelight, BotState botState) {
-    public ShootOnTheMoveCmd(Shooter shooter) {
+    public ShootOnTheMoveCmd(Shooter shooter, Supplier<Double> speed, Supplier<Double> hoodRot) {
         this.shooter = shooter;
+        this.speed = speed;
+        this.hoodRot = hoodRot;
         // this.limelight = limelight;
         // this.botState = botState;
         addRequirements(shooter);
@@ -66,7 +73,11 @@ public class ShootOnTheMoveCmd extends Command {
         // } else {
         //     shooterTarget = limelight.getBotPose(); // aim nowhere
         // }
-        shooter.setHood(0);
+        shooter.setHood(hoodRot.get());
+        shooter.setShooter(speed.get());
+        shooter.setRoller(0);
+        shooter.setMouth(0);
+        SmartDashboard.putNumber("speed", speed.get());
     }
 
     // public double getTargetAngle() {

@@ -11,6 +11,11 @@ import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 import static edu.wpi.first.units.Units.*;
+
+import java.util.function.DoubleSupplier;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -22,9 +27,10 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-
+import frc.robot.Util.BotState;
 import frc.robot.commands.DeployIntake;
 import frc.robot.commands.HomeClimberCmd;
+import frc.robot.commands.HoodAngle;
 import frc.robot.commands.ShootOnTheMoveCmd;
 import frc.robot.generated.TunerConstants;
 
@@ -53,6 +59,7 @@ public class RobotContainer {
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
+    // controller
     private final CommandXboxController controller = new CommandXboxController(0);
     private final Trigger a = controller.a();
     private final Trigger b = controller.b();
@@ -61,17 +68,20 @@ public class RobotContainer {
     private final Trigger rightTrigger = controller.rightTrigger();
     private final Trigger leftTrigger = controller.leftTrigger();
 
+    // subsystems
     public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     private final Shooter shooter = new Shooter();
-    //private final IntakeSubsystem intake = new IntakeSubsystem();
+    private final IntakeSubsystem intake = new IntakeSubsystem();
     //public final Climber climber = new Climber();
     // private final ElasticSubsystem elasticSubsystem = new ElasticSubsystem();
-    // private final Limelight vision = new Limelight(drivetrain);
+    public final Limelight vision = new Limelight(drivetrain, new BotState());
     // private final MatchStateManager matchStateManager = new MatchStateManager();
     
+    // vars
     public boolean isFollowingPath = false;
-
     private SendableChooser<Command> autoChooser; 
+    private double shootSpeed = Constants.SHOOTER_DEFAULT_RPS;
+    private double hoodRot = 0;
 
     /*Command shootAndAlign = new ParallelCommandGroup(
         new RunCommand(() -> drivetrain.applyRequest(() -> { 
@@ -101,7 +111,7 @@ public class RobotContainer {
     public RobotContainer() {
         isFollowingPath = false;
         autoChooser = AutoBuilder.buildAutoChooser("Example");
-        shooter.setDefaultCommand(new ShootOnTheMoveCmd(shooter));
+        shooter.setDefaultCommand(new ShootOnTheMoveCmd(shooter, () -> {return shootSpeed;}, () -> {return hoodRot;}));
        // climber.setDefaultCommand(new HomeClimberCmd(climber));
         configureBindings();
     }    
@@ -119,20 +129,21 @@ public class RobotContainer {
         }));*/
 
         //rightTrigger.whileTrue(shootAndAlign);
-        //leftTrigger.whileTrue(new DeployIntake(intake));
-        controller.povUp().whileTrue(new RunCommand(() -> {shooter.setHood(0.05); System.out.println(shooter.getHoodRotations());}));
+        leftTrigger.whileTrue(new DeployIntake(intake));
+        controller.povUp().whileTrue(new RunCommand(() -> {shooter.setHood(0.05);}));
         controller.povDown().whileTrue(new RunCommand(() -> shooter.setHood(-0.05)));
-        x.whileTrue(new RunCommand(() -> {shooter.setAngle((2.5));}));
+        controller.povLeft().onTrue(new InstantCommand(() -> {if (shootSpeed <-2) {shootSpeed += 1;}}));
+        controller.povRight().onTrue(new InstantCommand(() -> shootSpeed -= 10));
         y.onTrue(new InstantCommand(() -> shooter.setHoodPosition()));
+        x.whileTrue(new RunCommand(() ->  {shooter.setRoller(-0.7);shooter.setMouth(0.7);}));
         //rightTrigger.onTrue(new RunCommand(() -> {shooter.setRoller(-0.4); shooter.setMouth(0.3);}));
         // reset the field-centric heading on left bumper press
         controller.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-
         // default drive
         drivetrain.setDefaultCommand(drivetrain.applyRequest(() -> {        
             if (!isFollowingPath) {
-                return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.7)
-                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.7)
+                return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
+                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
                                     .withRotationalRate(-controller.getRightX() * MaxAngularRate);
             } else {
                 return driveRobotOriented.withVelocityX(0)

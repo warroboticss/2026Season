@@ -1,72 +1,82 @@
 package frc.robot.subsystems;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 import frc.robot.Util.BotState;
 import frc.robot.Util.RectanglePoseArea;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
+import frc.robot.LimelightHelpers.PoseEstimate;
 
 public class Limelight extends SubsystemBase {
-    // defines all variables used for vison pose estimates
     private final CommandSwerveDrivetrain drivetrain;
     private final BotState botState;
-    private final String ll = "limelight";
+    private final List<String> limelights = new ArrayList<>(List.of("limelight-shooter"));
+    //private final List<String> limelights = new ArrayList<>(List.of("limelight-left", "limelight-right", "limelight-shooter"));
+    private final Field2d fieldVisualization = new Field2d();
 
     private Boolean enable = true;
     private Boolean trust = false;
+    public Boolean seeded = false;
 
-    // error buildups (number of errors)
     public int fieldError = 0;
     public int distanceError = 0;
-
-    private Pose2d botpose;
-    private double confidence;
-    private double targetDistance;
-
-    // This creates our field so we ensure vision estimates are within its bounds
-    private static final RectanglePoseArea field = 
-        new RectanglePoseArea(new Translation2d(0.0, 0.0), new Translation2d(16.54, 8.02));
 
     public Limelight(CommandSwerveDrivetrain drivetrain, BotState botState) {
         this.botState = botState;
         this.drivetrain = drivetrain;
         SmartDashboard.putNumber("Field Error", fieldError);
         SmartDashboard.putNumber("Limelight Error", distanceError);
+        SmartDashboard.putData("Field", fieldVisualization);
     }
 
     @Override
     public void periodic() {
         if (enable) {
-            targetDistance = LimelightHelpers.getTargetPose3d_CameraSpace(ll).getTranslation().getDistance(new Translation3d());
-            confidence = 1 - ((targetDistance - 1) / 6);
-            if (LimelightHelpers.getTV(ll)) {
-                botpose = LimelightHelpers.getBotPose2d_wpiBlue(ll);
-                if (field.isPoseWithinArea(botpose)) {
-                    if (drivetrain.getState().Pose.getTranslation().getDistance(botpose.getTranslation()) < 0.5
-                        || trust
-                        || LimelightHelpers.getRawFiducials(ll).length > 1) {
-                            drivetrain.addVisionMeasurement(
-                                botpose,
-                                Timer.getFPGATimestamp() - LimelightHelpers.getLatency_Capture("limelightName") - LimelightHelpers.getLatency_Pipeline("limelightName"),
-                                VecBuilder.fill(confidence, confidence, .01));
-                        } else {
-                            distanceError++;
-                            SmartDashboard.putNumber("Limelight Error", distanceError);
-                        }
-                } else {
-                    fieldError++;
-                    SmartDashboard.putNumber("Field Error", fieldError);
+            for (String ll : limelights) {
+                LimelightHelpers.SetRobotOrientation(ll, drivetrain.getState().Pose.getRotation().getDegrees(),0,0,0,0,0);
+                Pose2d botPose = LimelightHelpers.getBotPose2d_wpiBlue(ll);
+                if (!seeded && LimelightHelpers.getTV(ll) && Constants.FIELD_AREA.isPoseWithinArea(botPose)) {
+                    drivetrain.resetPose(botPose);
+                    seeded = true;
+                }
+                if (LimelightHelpers.getTV(ll)) {
+                    Pose2d lastPose = drivetrain.getState().Pose;
+                    PoseEstimate mt2;
+                    if (LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(ll) != null) {
+                        mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(ll);
+                    } else{
+                        mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue(ll);
+                    }
+                    if (Constants.FIELD_AREA.isPoseWithinArea(mt2.pose) && !(lastPose.getTranslation().getDistance(LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(ll).pose.getTranslation()) > 0.5)) {
+                                drivetrain.addVisionMeasurement(
+                                    mt2.pose,
+                                    Timer.getFPGATimestamp() - ((LimelightHelpers.getLatency_Capture(ll) + LimelightHelpers.getLatency_Pipeline(ll)) / 1000.0),
+                                    getStdDevLL(ll)); 
+                               fieldVisualization.setRobotPose(lastPose);
+                            SmartDashboard.putData("Field", fieldVisualization);
+                    } else {
+                        fieldError++;
+                        SmartDashboard.putNumber("Field Error", fieldError);
+                    }
                 }
             }
         }
+        SmartDashboard.putNumber("Distance", getAbsoluteDistanceFromTarget(new Pose2d(11.930, 4.030, new Rotation2d(0.0))));
+        //System.out.println("Distance: " + getAbsoluteDistanceFromTarget(new Pose2d(4.620, 4.030, new Rotation2d(0.0))));
     }
 
     public void useLimeLight(boolean enable){
@@ -75,6 +85,18 @@ public class Limelight extends SubsystemBase {
 
     public void trustLL(boolean trust){
         this.trust = trust;
+    }
+
+    public Matrix<N3, N1> getStdDevLL(String ll) {
+        Pose2d lastBotPose = drivetrain.getState().Pose;
+        double targetDistance = LimelightHelpers.getTargetPose3d_CameraSpace(ll).getTranslation().getNorm();
+        double stDev = 0.1 + (targetDistance * 0.2); // base deviation is 0.1, each meter adds 0.1 deviation
+        if (LimelightHelpers.getTargetCount(ll) > 1) {
+            stDev /= 2;
+        } else {
+            stDev *= 2;
+        }
+        return VecBuilder.fill(0.4, 0.4, 9999999); // high n3 to trust pidgeon yaw
     }
 
     public double getAbsoluteDistanceFromTarget(Pose2d target) {
@@ -120,28 +142,28 @@ public class Limelight extends SubsystemBase {
     }
 
     public String getTrenchPath() {
-        Pose2d currentBotPose = getBotPose();
+        Pose2d botPose = drivetrain.getState().Pose;
         String trenchPath = null;
         switch (botState.ALLIANCE) {
             case "Blue":
-                if (Constants.UPPER_BLUE_AREA.isPoseWithinArea(currentBotPose)) {
+                if (Constants.UPPER_BLUE_AREA.isPoseWithinArea(botPose)) {
                     trenchPath = "Upper Blue Path";
-                } else if (Constants.LOWER_BLUE_AREA.isPoseWithinArea(currentBotPose)) {
+                } else if (Constants.LOWER_BLUE_AREA.isPoseWithinArea(botPose)) {
                     trenchPath = "Lower Blue Path";
-                } else if (Constants.UPPER_NEUTRAL.isPoseWithinArea(currentBotPose)) {
+                } else if (Constants.UPPER_NEUTRAL.isPoseWithinArea(botPose)) {
                     trenchPath = "Upper Neutral Blue Path";
-                } else if (Constants.LOWER_NEUTRAL.isPoseWithinArea(currentBotPose)) {
+                } else if (Constants.LOWER_NEUTRAL.isPoseWithinArea(botPose)) {
                     trenchPath = "Lower Neutral Blue Path";
                 }
                 break;
             case "Red":
-                if (Constants.UPPER_RED_AREA.isPoseWithinArea(currentBotPose)) {
+                if (Constants.UPPER_RED_AREA.isPoseWithinArea(botPose)) {
                     trenchPath = "Upper Red Path";
-                } else if (Constants.LOWER_RED_AREA.isPoseWithinArea(currentBotPose)) {
+                } else if (Constants.LOWER_RED_AREA.isPoseWithinArea(botPose)) {
                     trenchPath = "Lower Red Path";
-                } else if (Constants.UPPER_NEUTRAL.isPoseWithinArea(currentBotPose)) {
+                } else if (Constants.UPPER_NEUTRAL.isPoseWithinArea(botPose)) {
                     trenchPath = "Upper Neutral Red Path";
-                } else if (Constants.LOWER_NEUTRAL.isPoseWithinArea(currentBotPose)) {
+                } else if (Constants.LOWER_NEUTRAL.isPoseWithinArea(botPose)) {
                     trenchPath = "Lower Neutral Red Path";
                 }
                 break;
@@ -150,20 +172,20 @@ public class Limelight extends SubsystemBase {
     }
 
     public String getClimbPath() {
-        Pose2d currentBotPose = getBotPose();
+        Pose2d botPose = drivetrain.getState().Pose;
         String climbPath = null;
         switch (botState.ALLIANCE) {
             case "Blue":
-                if (Constants.UPPER_BLUE_AREA.isPoseWithinArea(currentBotPose)) {
+                if (Constants.UPPER_BLUE_AREA.isPoseWithinArea(botPose)) {
                     climbPath = "Upper Blue Climb";
-                } else if (Constants.LOWER_BLUE_AREA.isPoseWithinArea(currentBotPose)) {
+                } else if (Constants.LOWER_BLUE_AREA.isPoseWithinArea(botPose)) {
                     climbPath = "Lower Blue Climb";
                 }
                 break;
             case "Red":
-                if (Constants.UPPER_RED_AREA.isPoseWithinArea(currentBotPose)) {
+                if (Constants.UPPER_RED_AREA.isPoseWithinArea(botPose)) {
                     climbPath = "Upper Red Climb";
-                } else if (Constants.LOWER_BLUE_AREA.isPoseWithinArea(currentBotPose)) {
+                } else if (Constants.LOWER_BLUE_AREA.isPoseWithinArea(botPose)) {
                     climbPath = "Lower Red Climb";
                 }
                 break;
@@ -184,3 +206,6 @@ public class Limelight extends SubsystemBase {
         return poseArea;
     }
 }
+
+
+

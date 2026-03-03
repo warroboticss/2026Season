@@ -1,12 +1,18 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -27,51 +33,30 @@ public class Shooter extends SubsystemBase{
     public boolean shooting;
 
     public Shooter(){
-        rollerFollower.setControl(new Follower(16, MotorAlignmentValue.Opposed));
+        configShooterMotors(shooterMain.getConfigurator());
+        configShooterMotors(shooterFollower.getConfigurator());
         shooterFollower.setControl(new Follower(21, MotorAlignmentValue.Opposed));
 
-        var talonFXConfigsShooter = new TalonFXConfiguration();
+        configRollerMotors(rollersMain.getConfigurator());
+        configRollerMotors(rollerFollower.getConfigurator());
+        rollerFollower.setControl(new Follower(16, MotorAlignmentValue.Opposed));
+        
+        configAngleMotor(hoodAngler.getConfigurator());
+        hoodAngler.setPosition(0);
 
-        // tune this
-        var shooterConfigs = talonFXConfigsShooter.Slot0;
-        shooterConfigs.kS = 0.21678; // Add 0.25 V output to overcome private friction
-        shooterConfigs.kV = 0.12259; // A velocity target of 1 rps results in 0.12 V output
-        shooterConfigs.kA = 0.005602; // An acceleration of 1 rps/s requires 0.01 V output
-        shooterConfigs.kP = 0; // A position error of 2.5 rotations results in 12 V output
-        shooterConfigs.kI = 0; // no output for integrated error
-        shooterConfigs.kD = 0; // A velocity error of 1 rps results in 0.1 V output
+        shooterMain.optimizeBusUtilization();
+        shooterFollower.optimizeBusUtilization();
+        rollersMain.optimizeBusUtilization();
+        rollerFollower.optimizeBusUtilization();
+        hoodAngler.optimizeBusUtilization();
 
-        // set Motion Magic settings
-        var motionMagicConfigsShooter = talonFXConfigsShooter.MotionMagic;
-        motionMagicConfigsShooter.MotionMagicCruiseVelocity = 80;
-        motionMagicConfigsShooter.MotionMagicAcceleration = 160;
-        motionMagicConfigsShooter.MotionMagicJerk = 1200;
-
-        shooterMain.getConfigurator().apply(talonFXConfigsShooter);
-
-        var talonFXConfigsAngle = new TalonFXConfiguration();
-
-        // tune this
-        var angleConfigs = talonFXConfigsAngle.Slot0;
-        angleConfigs.kS = 0.35; // Add 0.25 V output to overcome static friction
-        angleConfigs.kV = 0.12; // A velocity target of 1 rps results in 0.12 V output
-        angleConfigs.kA = 0.01; // An acceleration of 1 rps/s requires 0.01 V output
-        angleConfigs.kP = 0.4; // A position error of 2.5 rotations results in 12 V output
-        angleConfigs.kI = 0; // no output for integrated error
-        angleConfigs.kD = 0.1; // A velocity error of 1 rps results in 0.1 V output
-
-        // set Motion Magic settings
-        var motionMagicConfigsAngle = talonFXConfigsAngle.MotionMagic;
-        motionMagicConfigsAngle.MotionMagicCruiseVelocity = 1;
-        motionMagicConfigsAngle.MotionMagicAcceleration = 2;
-        motionMagicConfigsAngle.MotionMagicJerk = 20;
-
-        hoodAngler.getConfigurator().apply(talonFXConfigsAngle);
     }
 
+    // methods
     @Override
     public void periodic() {
         //shooterMain.setControl(m_shooterRequest.withVelocity(desiredShooterRPS));
+        SmartDashboard.putNumber("hood angle", getHoodRotations());
     }
 
     public void setRoller(double speed) {
@@ -79,7 +64,7 @@ public class Shooter extends SubsystemBase{
     }
 
     public void setShooter(double speed) {
-        desiredShooterRPS = speed;
+        shooterMain.setControl(m_shooterRequest.withVelocity(speed));
     }
 
     public void setAngle(double angle) {
@@ -110,5 +95,114 @@ public class Shooter extends SubsystemBase{
     public boolean getShooting() {
         return shooting;
     }
- 
+
+
+    // configs
+    private static void configShooterMotors(TalonFXConfigurator config) {
+    // Creating a new configuration to ensure we get the same results every time
+    var newConfig = new TalonFXConfiguration();
+
+    // Configure idle mode and polarity
+    var output = newConfig.MotorOutput;
+    output.Inverted = InvertedValue.Clockwise_Positive;
+    output.NeutralMode = NeutralModeValue.Coast;
+
+    // Set max voltage
+    var voltage = newConfig.Voltage;
+    voltage.PeakForwardVoltage = 14;
+    voltage.PeakReverseVoltage = 0;
+
+    // Set current limits
+    var current = newConfig.CurrentLimits;
+    current.StatorCurrentLimit = 100;
+    current.StatorCurrentLimitEnable = true;
+    current.SupplyCurrentLimit = 50;
+    current.SupplyCurrentLimitEnable = true;
+
+    // Configure PID in Slot 0
+    Slot0Configs slot0 = newConfig.Slot0;
+    slot0.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
+
+    slot0.kS = 0.21678;
+    slot0.kV = 0.12259; 
+    slot0.kA = 0.005602;
+    slot0.kP = 0; 
+    slot0.kI = 0;
+    slot0.kD = 0; 
+    
+    // Configuring MotionMagic
+    var motionMagic = newConfig.MotionMagic;
+    motionMagic.MotionMagicCruiseVelocity = 80.0;
+    motionMagic.MotionMagicAcceleration = 160.0;
+    motionMagic.MotionMagicJerk = 1200.0;
+
+    // Apply configuration
+    config.apply(newConfig, 0.050);
+  }
+
+  private static void configAngleMotor(TalonFXConfigurator config) {
+    // Creating a new configuration to ensure we get the same results every time
+    var newConfig = new TalonFXConfiguration();
+
+    // Configure idle mode and polarity
+    var output = newConfig.MotorOutput;
+    output.Inverted = InvertedValue.Clockwise_Positive;
+    output.NeutralMode = NeutralModeValue.Brake;
+
+    // Set max voltage
+    var voltage = newConfig.Voltage;
+    voltage.PeakForwardVoltage = 6;
+    voltage.PeakReverseVoltage = -6;
+
+    // Set current limits
+    var current = newConfig.CurrentLimits;
+    current.StatorCurrentLimit = 60;
+    current.StatorCurrentLimitEnable = true;
+    current.SupplyCurrentLimit = 30;
+    current.SupplyCurrentLimitEnable = true;
+
+    // Configure PID in Slot 0
+    Slot0Configs slot0 = newConfig.Slot0;
+    slot0.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
+
+    slot0.kS = 0.6; 
+    slot0.kV = 0.05; 
+    slot0.kA = 0.01; 
+    slot0.kP = 0.4; 
+    slot0.kI = 0; 
+    slot0.kD = 0.1;
+    
+    // Configuring MotionMagic
+    var motionMagic = newConfig.MotionMagic;
+    motionMagic.MotionMagicCruiseVelocity = 5.0;
+    motionMagic.MotionMagicAcceleration = 10.0;
+    motionMagic.MotionMagicJerk = 100.0;
+
+    // Apply configuration
+    config.apply(newConfig, 0.050);
+  }
+
+  private static void configRollerMotors(TalonFXConfigurator config){
+    var newConfig = new TalonFXConfiguration();
+
+    // Configure idle mode and polarity
+    var output = newConfig.MotorOutput;
+    output.Inverted = InvertedValue.Clockwise_Positive;
+    output.NeutralMode = NeutralModeValue.Coast;
+
+    // Set max voltage
+    var voltage = newConfig.Voltage;
+    voltage.PeakForwardVoltage = 8;
+    voltage.PeakReverseVoltage = -8;
+
+    // Set current limits
+    var current = newConfig.CurrentLimits;
+    current.StatorCurrentLimit = 80;
+    current.StatorCurrentLimitEnable = true;
+    current.SupplyCurrentLimit = 40;
+    current.SupplyCurrentLimitEnable = true;
+
+    // Apply configuration
+    config.apply(newConfig, 0.050);
+  }
 }
