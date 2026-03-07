@@ -35,7 +35,7 @@ public class Shooter extends SubsystemBase{
     public Shooter(){
         configShooterMotors(shooterMain.getConfigurator());
         configShooterMotors(shooterFollower.getConfigurator());
-        shooterFollower.setControl(new Follower(21, MotorAlignmentValue.Opposed));
+        //shooterFollower.setControl(new Follower(21, MotorAlignmentValue.Opposed));
 
         configRollerMotors(rollersMain.getConfigurator());
         configRollerMotors(rollerFollower.getConfigurator());
@@ -65,11 +65,12 @@ public class Shooter extends SubsystemBase{
 
     public void setShooter(double speed) {
         shooterMain.setControl(m_shooterRequest.withVelocity(speed));
+        shooterFollower.setControl(m_shooterRequest.withVelocity(-speed));
     }
 
     public void setAngle(double angle) {
         hoodAngler.setControl(m_angleRequest.withPosition(angle));
-        System.out.println(angle);
+        //System.out.println(angle);
     }
 
     public double getHoodRotations(){
@@ -104,19 +105,19 @@ public class Shooter extends SubsystemBase{
 
     // Configure idle mode and polarity
     var output = newConfig.MotorOutput;
-    output.Inverted = InvertedValue.Clockwise_Positive;
+    //output.Inverted = InvertedValue.Clockwise_Positive;
     output.NeutralMode = NeutralModeValue.Coast;
 
     // Set max voltage
     var voltage = newConfig.Voltage;
     voltage.PeakForwardVoltage = 14;
-    voltage.PeakReverseVoltage = 0;
+    voltage.PeakReverseVoltage = -14;
 
     // Set current limits
     var current = newConfig.CurrentLimits;
-    current.StatorCurrentLimit = 100;
+    current.StatorCurrentLimit = 120;
     current.StatorCurrentLimitEnable = true;
-    current.SupplyCurrentLimit = 50;
+    current.SupplyCurrentLimit = 60;
     current.SupplyCurrentLimitEnable = true;
 
     // Configure PID in Slot 0
@@ -146,7 +147,7 @@ public class Shooter extends SubsystemBase{
 
     // Configure idle mode and polarity
     var output = newConfig.MotorOutput;
-    output.Inverted = InvertedValue.Clockwise_Positive;
+    //output.Inverted = InvertedValue.Clockwise_Positive;
     output.NeutralMode = NeutralModeValue.Brake;
 
     // Set max voltage
@@ -187,7 +188,7 @@ public class Shooter extends SubsystemBase{
 
     // Configure idle mode and polarity
     var output = newConfig.MotorOutput;
-    output.Inverted = InvertedValue.Clockwise_Positive;
+    //output.Inverted = InvertedValue.Clockwise_Positive;
     output.NeutralMode = NeutralModeValue.Coast;
 
     // Set max voltage

@@ -17,7 +17,7 @@ public class HomeClimberCmd extends Command{
         // if (!climber.getKeepClimbing()) {
         //     climber.home();
         // }
-        climber.set(0);
+        climber.manualTest(0);
     }
 
     // @Override

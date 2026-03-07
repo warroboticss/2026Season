@@ -73,7 +73,7 @@ public class ShootOnTheMoveCmd extends Command {
         // } else {
         //     shooterTarget = limelight.getBotPose(); // aim nowhere
         // }
-        shooter.setHood(hoodRot.get());
+        shooter.setAngle(hoodRot.get());
         shooter.setShooter(speed.get());
         shooter.setRoller(0);
         shooter.setMouth(0);

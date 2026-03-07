@@ -67,12 +67,13 @@ public class RobotContainer {
     private final Trigger y = controller.y();
     private final Trigger rightTrigger = controller.rightTrigger();
     private final Trigger leftTrigger = controller.leftTrigger();
+    private final Trigger rightBumper = controller.rightBumper();
 
     // subsystems
     public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     private final Shooter shooter = new Shooter();
     private final IntakeSubsystem intake = new IntakeSubsystem();
-    //public final Climber climber = new Climber();
+    public final Climber climber = new Climber();
     // private final ElasticSubsystem elasticSubsystem = new ElasticSubsystem();
     public final Limelight vision = new Limelight(drivetrain, new BotState());
     // private final MatchStateManager matchStateManager = new MatchStateManager();
@@ -112,7 +113,7 @@ public class RobotContainer {
         isFollowingPath = false;
         autoChooser = AutoBuilder.buildAutoChooser("Example");
         shooter.setDefaultCommand(new ShootOnTheMoveCmd(shooter, () -> {return shootSpeed;}, () -> {return hoodRot;}));
-       // climber.setDefaultCommand(new HomeClimberCmd(climber));
+       climber.setDefaultCommand(new HomeClimberCmd(climber));
         configureBindings();
     }    
     
@@ -130,18 +131,36 @@ public class RobotContainer {
 
         //rightTrigger.whileTrue(shootAndAlign);
         leftTrigger.whileTrue(new DeployIntake(intake));
-        controller.povUp().whileTrue(new RunCommand(() -> {shooter.setHood(0.05);}));
-        controller.povDown().whileTrue(new RunCommand(() -> shooter.setHood(-0.05)));
+        controller.povUp().onTrue(new InstantCommand(() -> {hoodRot+=0.05;}));
+        controller.povDown().onTrue(new InstantCommand(() -> {hoodRot-=0.05;}));
         controller.povLeft().onTrue(new InstantCommand(() -> {if (shootSpeed <-2) {shootSpeed += 1;}}));
         controller.povRight().onTrue(new InstantCommand(() -> shootSpeed -= 10));
-        y.onTrue(new InstantCommand(() -> shooter.setHoodPosition()));
+        y.onTrue(new InstantCommand(() -> {
+            //shootSpeed = 0.771016 * Math.pow(vision.getAbsoluteDistanceFromTarget(new Pose2d(4.620, 4.030, new Rotation2d(0.0))), 2)+0.579773 * vision.getAbsoluteDistanceFromTarget(new Pose2d(4.620, 4.030, new Rotation2d(0.0))) +42.97778;
+            shootSpeed = -1 * 6.39816 * vision.getAbsoluteDistanceFromTarget(new Pose2d(4.620, 4.030, new Rotation2d(0.0))) - 33.10835;
+            hoodRot = 0.641169 + 1.12764 * Math.log(vision.getAbsoluteDistanceFromTarget(new Pose2d(4.620, 4.030, new Rotation2d(0.0))));
+        }));
         x.whileTrue(new RunCommand(() ->  {shooter.setRoller(-0.7);shooter.setMouth(0.7);}));
+        a.whileTrue(new RunCommand(() -> climber.manualTest(0.5)));
+        b.whileTrue(new RunCommand(() -> climber.manualTest(-0.5)));
         //rightTrigger.onTrue(new RunCommand(() -> {shooter.setRoller(-0.4); shooter.setMouth(0.3);}));
         // reset the field-centric heading on left bumper press
         controller.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         // default drive
-        drivetrain.setDefaultCommand(drivetrain.applyRequest(() -> {        
-            if (!isFollowingPath) {
+        drivetrain.setDefaultCommand(drivetrain.applyRequest(() -> {  
+            double kPAngle = 0.3;
+            if (rightBumper.getAsBoolean()) {
+                return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
+                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
+                                     .withRotationalRate(kPAngle * vision.getHeadingError(new Pose2d(4.620, 4.030, new Rotation2d(0.0))));
+                // return vision.getHeadingError(new Pose2d(4.620, 4.030, new Rotation2d(0.0))) > 0.1 ? drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
+                //                     .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
+                //                     .withRotationalRate(-1 * kPAngle * vision.getHeadingError(new Pose2d(4.620, 4.030, new Rotation2d(0.0)))) : drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
+                //                     .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
+                //                     .withRotationalRate(0);
+                
+                
+            } else if (!isFollowingPath) {
                 return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
                                     .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
                                     .withRotationalRate(-controller.getRightX() * MaxAngularRate);

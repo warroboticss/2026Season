@@ -56,8 +56,8 @@ public class Climber extends SubsystemBase {
         return keepClimbing;
     }
 
-    public void set(double pos){
-        climber.set(0.5 * pos);
+    public void manualTest(double speed){
+        climber.set(speed);
     }
 
 
@@ -68,7 +68,7 @@ public class Climber extends SubsystemBase {
 
     // Configure idle mode and polarity
     var output = newConfig.MotorOutput;
-    output.Inverted = InvertedValue.Clockwise_Positive;
+    //output.Inverted = InvertedValue.Clockwise_Positive;
     output.NeutralMode = NeutralModeValue.Brake;
 
     // Set max voltage

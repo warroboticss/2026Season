@@ -25,7 +25,7 @@ public class IntakeSubsystem extends SubsystemBase {
     public IntakeSubsystem() {
         configDeployMotors(leftMotor.getConfigurator());
         configDeployMotors(rightMotor.getConfigurator());
-        rightMotor.setControl(new Follower(13, MotorAlignmentValue.Opposed));
+        //rightMotor.setControl(new Follower(13, MotorAlignmentValue.Opposed));
         
         configSpinnyMotor(primaryIntakeMotor.getConfigurator());
 
@@ -45,7 +45,12 @@ public class IntakeSubsystem extends SubsystemBase {
 	
 	public void setIntakePosition(double angle) {
         leftMotor.setControl(m_angleRequest.withPosition(angle));
+        rightMotor.setControl(m_angleRequest.withPosition(-angle));
     }
+  
+  public void setDeploySpeed(double speed){
+    leftMotor.set(0);
+  }
 
 
     // configs
@@ -55,7 +60,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
     // Configure idle mode and polarity
     var output = newConfig.MotorOutput;
-    output.Inverted = InvertedValue.Clockwise_Positive;
+    //output.Inverted = InvertedValue.Clockwise_Positive;
     output.NeutralMode = NeutralModeValue.Brake;
 
     // Set max voltage
@@ -74,7 +79,7 @@ public class IntakeSubsystem extends SubsystemBase {
     Slot0Configs slot0 = newConfig.Slot0;
     slot0.StaticFeedforwardSign = StaticFeedforwardSignValue.UseClosedLoopSign;
 
-    slot0.kG = 0.34;
+    slot0.kG = 0.38;
     slot0.kS = 0.25; // Add 0.25 V output to overcome static friction
     slot0.kV = 1.95; // A velocity target of 1 rps results in 0.12 V output
     slot0.kA = 0.06; // An acceleration of 1 rps/s requires 0.01 V output
@@ -97,7 +102,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
     // Configure idle mode and polarity
     var output = newConfig.MotorOutput;
-    output.Inverted = InvertedValue.Clockwise_Positive;
+    //output.Inverted = InvertedValue.Clockwise_Positive;
     output.NeutralMode = NeutralModeValue.Coast;
 
     // Set max voltage

@@ -48,7 +48,7 @@ public class Limelight extends SubsystemBase {
         if (enable) {
             for (String ll : limelights) {
                 LimelightHelpers.SetRobotOrientation(ll, drivetrain.getState().Pose.getRotation().getDegrees(),0,0,0,0,0);
-                Pose2d botPose = LimelightHelpers.getBotPose2d_wpiBlue(ll);
+                Pose2d botPose = LimelightHelpers.getBotPose2d_wpiBlue("limelight-shooter");
                 if (!seeded && LimelightHelpers.getTV(ll) && Constants.FIELD_AREA.isPoseWithinArea(botPose)) {
                     drivetrain.resetPose(botPose);
                     seeded = true;
@@ -75,8 +75,8 @@ public class Limelight extends SubsystemBase {
                 }
             }
         }
-        SmartDashboard.putNumber("Distance", getAbsoluteDistanceFromTarget(new Pose2d(11.930, 4.030, new Rotation2d(0.0))));
-        //System.out.println("Distance: " + getAbsoluteDistanceFromTarget(new Pose2d(4.620, 4.030, new Rotation2d(0.0))));
+        //SmartDashboard.putNumber("Distance", getAbsoluteDistanceFromTarget(new Pose2d(11.930, 4.030, new Rotation2d(0.0))));
+        SmartDashboard.putNumber("Distance: ", getAbsoluteDistanceFromTarget(new Pose2d(4.620, 4.030, new Rotation2d(0.0))));
     }
 
     public void useLimeLight(boolean enable){
@@ -96,7 +96,7 @@ public class Limelight extends SubsystemBase {
         } else {
             stDev *= 2;
         }
-        return VecBuilder.fill(0.4, 0.4, 9999999); // high n3 to trust pidgeon yaw
+        return VecBuilder.fill(0.5, 0.5, 9999999); // high n3 to trust pidgeon yaw
     }
 
     public double getAbsoluteDistanceFromTarget(Pose2d target) {
@@ -124,10 +124,11 @@ public class Limelight extends SubsystemBase {
         double dist_x = target.getX() - botPose.getX();
         double dist_y = target.getY() - botPose.getY();
 
-        Rotation2d targetToNormal = new Rotation2d(Math.atan2(dist_y, dist_x));
-        Rotation2d robotYaw = botPose.getRotation();
+        double targetToNormal = Math.atan2(dist_y, dist_x);
+        double robotYaw = botPose.getRotation().getRadians();
         // returns angle to target (wrapped for π, -π)
-        double angleError = targetToNormal.minus(robotYaw).getRadians();
+        double angleError = targetToNormal - robotYaw;
+        System.out.println("Heading Error: " + angleError);
         return angleError;
     }
 
