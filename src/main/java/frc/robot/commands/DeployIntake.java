@@ -13,7 +13,7 @@ public class DeployIntake extends Command {
     }
 
     public void execute() {
-        intake.setIntakePosition(7.2); // dummy value
+        intake.setIntakePosition(7.3); // dummy value
         intake.runIntake(0.8); // dummy value
     }
 
@@ -23,7 +23,6 @@ public class DeployIntake extends Command {
 
     public void end(boolean interrupted) {
         intake.stopIntake();
-        intake.setDeploySpeed(0);
         //intake.setIntakePosition(5.75); // dummy value
     }
 }

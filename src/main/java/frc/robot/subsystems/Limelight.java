@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 
 import frc.robot.Util.BotState;
 import frc.robot.Util.RectanglePoseArea;
@@ -25,7 +26,6 @@ public class Limelight extends SubsystemBase {
     private final CommandSwerveDrivetrain drivetrain;
     private final BotState botState;
     private final List<String> limelights = new ArrayList<>(List.of("limelight-shooter"));
-    //private final List<String> limelights = new ArrayList<>(List.of("limelight-left", "limelight-right", "limelight-shooter"));
     private final Field2d fieldVisualization = new Field2d();
 
     private Boolean enable = true;
@@ -53,7 +53,7 @@ public class Limelight extends SubsystemBase {
                     drivetrain.resetPose(botPose);
                     seeded = true;
                 }
-                if (LimelightHelpers.getTV(ll)) {
+                if (LimelightHelpers.getTV(ll) && seeded) {
                     Pose2d lastPose = drivetrain.getState().Pose;
                     PoseEstimate mt2;
                     if (LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(ll) != null) {
@@ -61,13 +61,11 @@ public class Limelight extends SubsystemBase {
                     } else{
                         mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue(ll);
                     }
-                    if (Constants.FIELD_AREA.isPoseWithinArea(mt2.pose) && !(lastPose.getTranslation().getDistance(LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(ll).pose.getTranslation()) > 0.5)) {
-                                drivetrain.addVisionMeasurement(
-                                    mt2.pose,
-                                    Timer.getFPGATimestamp() - ((LimelightHelpers.getLatency_Capture(ll) + LimelightHelpers.getLatency_Pipeline(ll)) / 1000.0),
-                                    getStdDevLL(ll)); 
-                               fieldVisualization.setRobotPose(lastPose);
-                            SmartDashboard.putData("Field", fieldVisualization);
+                    if (Constants.FIELD_AREA.isPoseWithinArea(mt2.pose) && (lastPose.getTranslation().getDistance(mt2.pose.getTranslation()) < 0.5)) {
+                                 drivetrain.addVisionMeasurement(
+                                     mt2.pose,
+                                     Timer.getFPGATimestamp() - ((LimelightHelpers.getLatency_Capture(ll) + LimelightHelpers.getLatency_Pipeline(ll)) / 1000.0),
+                                     VecBuilder.fill(0.5, 0.5, 9999999)); 
                     } else {
                         fieldError++;
                         SmartDashboard.putNumber("Field Error", fieldError);
@@ -75,8 +73,11 @@ public class Limelight extends SubsystemBase {
                 }
             }
         }
-        //SmartDashboard.putNumber("Distance", getAbsoluteDistanceFromTarget(new Pose2d(11.930, 4.030, new Rotation2d(0.0))));
-        SmartDashboard.putNumber("Distance: ", getAbsoluteDistanceFromTarget(new Pose2d(4.620, 4.030, new Rotation2d(0.0))));
+        fieldVisualization.setRobotPose(drivetrain.getState().Pose);
+        fieldVisualization.getObject("target").setPose(getTarget());
+        SmartDashboard.putData("Field", fieldVisualization);
+        SmartDashboard.putNumber("Distance", getAbsoluteDistanceFromTarget(getTarget()));
+       // SmartDashboard.putNumber("Distance: ", getAbsoluteDistanceFromTarget(new Pose2d(4.620, 4.030, new Rotation2d(0.0))));
     }
 
     public void useLimeLight(boolean enable){
@@ -85,18 +86,6 @@ public class Limelight extends SubsystemBase {
 
     public void trustLL(boolean trust){
         this.trust = trust;
-    }
-
-    public Matrix<N3, N1> getStdDevLL(String ll) {
-        Pose2d lastBotPose = drivetrain.getState().Pose;
-        double targetDistance = LimelightHelpers.getTargetPose3d_CameraSpace(ll).getTranslation().getNorm();
-        double stDev = 0.1 + (targetDistance * 0.2); // base deviation is 0.1, each meter adds 0.1 deviation
-        if (LimelightHelpers.getTargetCount(ll) > 1) {
-            stDev /= 2;
-        } else {
-            stDev *= 2;
-        }
-        return VecBuilder.fill(0.5, 0.5, 9999999); // high n3 to trust pidgeon yaw
     }
 
     public double getAbsoluteDistanceFromTarget(Pose2d target) {
@@ -124,12 +113,12 @@ public class Limelight extends SubsystemBase {
         double dist_x = target.getX() - botPose.getX();
         double dist_y = target.getY() - botPose.getY();
 
-        double targetToNormal = Math.atan2(dist_y, dist_x);
+        double targetToNormal = Math.atan2(dist_y, dist_x) + Math.PI;
         double robotYaw = botPose.getRotation().getRadians();
         // returns angle to target (wrapped for π, -π)
         double angleError = targetToNormal - robotYaw;
-        System.out.println("Heading Error: " + angleError);
-        return angleError;
+        //System.out.println("Error: " + Math.atan2(Math.sin(angleError), Math.cos(angleError)));
+        return Math.atan2(Math.sin(angleError), Math.cos(angleError));
     }
 
     public Pose2d getBotPose() {
@@ -205,6 +194,32 @@ public class Limelight extends SubsystemBase {
                 break;
         }
         return poseArea;
+    }
+
+    public Pose2d getTarget(){
+        Pose2d botPose = drivetrain.getState().Pose;
+        Pose2d target = new Pose2d(0, 0, new Rotation2d(0));
+        switch (botState.ALLIANCE) {
+            case "Blue":
+                if (Constants.BLUE_AREA.isPoseWithinArea(botPose)) {
+                    target = Constants.BLUE_HUB;
+                } else if (Constants.UPPER_NEUTRAL.isPoseWithinArea(botPose)) {
+                    target = new Pose2d(2.0, 6.0, new Rotation2d(0.0));
+                } else if (Constants.LOWER_NEUTRAL.isPoseWithinArea(botPose)) {
+                    target = new Pose2d(2.0, 2.0, new Rotation2d(0.0));
+                }
+                break;
+            case "Red":
+                if (Constants.RED_AREA.isPoseWithinArea(botPose)) {
+                    target = Constants.RED_HUB;
+                } else if (Constants.UPPER_NEUTRAL.isPoseWithinArea(botPose)) {
+                    target = new Pose2d(14.5, 6.0, new Rotation2d(0.0));
+                } else if (Constants.LOWER_NEUTRAL.isPoseWithinArea(botPose)) {
+                    target = new Pose2d(14.5, 2.0, new Rotation2d(0.0));
+                }
+                break;
+        }
+        return target;
     }
 }
 

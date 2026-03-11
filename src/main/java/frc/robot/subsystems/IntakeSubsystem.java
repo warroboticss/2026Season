@@ -5,6 +5,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
@@ -38,6 +39,12 @@ public class IntakeSubsystem extends SubsystemBase {
 	public void runIntake(double speed){
 	    primaryIntakeMotor.set(speed);
     }
+
+  public void oscillateRoller(){
+    double funky = Math.sin(Timer.getFPGATimestamp() * 10) * 0.5;
+    primaryIntakeMotor.set(funky);
+    System.out.println(funky);
+  }
 
     public void stopIntake(){
 	    primaryIntakeMotor.set(0);
@@ -83,7 +90,7 @@ public class IntakeSubsystem extends SubsystemBase {
     slot0.kS = 0.25; // Add 0.25 V output to overcome static friction
     slot0.kV = 1.95; // A velocity target of 1 rps results in 0.12 V output
     slot0.kA = 0.06; // An acceleration of 1 rps/s requires 0.01 V output
-    slot0.kP = 6.27; // A position error of 2.5 rotations results in 12 V output
+    slot0.kP = 15; // A position error of 2.5 rotations results in 12 V output
     slot0.kI = 0; // no output for integrated error
     slot0.kD = 0.25; // A velocity error of 1 rps results in 0.1 V output
     

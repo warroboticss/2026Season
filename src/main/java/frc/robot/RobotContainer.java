@@ -7,11 +7,14 @@ package frc.robot;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -27,11 +30,15 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+
+import frc.robot.LimelightHelpers.RawFiducial;
 import frc.robot.Util.BotState;
+
 import frc.robot.commands.DeployIntake;
 import frc.robot.commands.HomeClimberCmd;
 import frc.robot.commands.HoodAngle;
 import frc.robot.commands.ShootOnTheMoveCmd;
+import frc.robot.commands.ShootPreReqCmd;
 import frc.robot.generated.TunerConstants;
 
 import frc.robot.subsystems.Climber;
@@ -67,17 +74,17 @@ public class RobotContainer {
     private final Trigger y = controller.y();
     private final Trigger rightTrigger = controller.rightTrigger();
     private final Trigger leftTrigger = controller.leftTrigger();
-    private final Trigger rightBumper = controller.rightBumper();
 
     // subsystems
     public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+    public final BotState botState = new BotState();
     private final Shooter shooter = new Shooter();
     private final IntakeSubsystem intake = new IntakeSubsystem();
     public final Climber climber = new Climber();
     // private final ElasticSubsystem elasticSubsystem = new ElasticSubsystem();
-    public final Limelight vision = new Limelight(drivetrain, new BotState());
+    public final Limelight vision = new Limelight(drivetrain, botState);
     // private final MatchStateManager matchStateManager = new MatchStateManager();
-    
+
     // vars
     public boolean isFollowingPath = false;
     private SendableChooser<Command> autoChooser; 
@@ -111,58 +118,58 @@ public class RobotContainer {
 
     public RobotContainer() {
         isFollowingPath = false;
-        autoChooser = AutoBuilder.buildAutoChooser("Example");
-        shooter.setDefaultCommand(new ShootOnTheMoveCmd(shooter, () -> {return shootSpeed;}, () -> {return hoodRot;}));
-       climber.setDefaultCommand(new HomeClimberCmd(climber));
+        NamedCommands.registerCommand("deployIntake", new DeployIntake(intake));
+        NamedCommands.registerCommand("shoot", new ShootPreReqCmd(shooter, vision, intake));
+        //NamedCommands.registerCommand("rollers", shooter.setRollerCmd(0.8));
+
+        autoChooser = AutoBuilder.buildAutoChooser("Testing");
+        //shooter.setDefaultCommand(new ShootOnTheMoveCmd(shooter, () -> {return Constants.SHOOTER_DEFAULT_RPS;}, () -> {return 0.0;}));
+        shooter.setDefaultCommand(shooter.setRollerCmd(-0.2));
+        climber.setDefaultCommand(new HomeClimberCmd(climber));
         configureBindings();
     }    
     
     private void configureBindings() {
         /*a.onTrue(Commands.runOnce(()-> {
-            if (!isFollowingPath) {
-                isFollowingPath = true;
-                String path = Limelight.getTrenchPath();
-                if (path != null) {
-                    Command limelightPath = GeneratePath(path);
-                    CommandScheduler.getInstance().schedule(limelightPath.andThen(() -> isFollowingPath = false));
-                }
-            }
-        }));*/
+             if (!isFollowingPath) {
+                 isFollowingPath = true;
+                 String path = "WWII";
+                 if (path != null) {
+                     Command limelightPath = GeneratePath(path);
+                     CommandScheduler.getInstance().schedule(limelightPath.andThen(() -> isFollowingPath = false));
+                 }
+             }
+         }));*/
+
+        //a.onTrue(GeneratePath("Forward"));
 
         //rightTrigger.whileTrue(shootAndAlign);
+        y.whileTrue(new InstantCommand(() -> intake.setIntakePosition(1)));
         leftTrigger.whileTrue(new DeployIntake(intake));
-        controller.povUp().onTrue(new InstantCommand(() -> {hoodRot+=0.05;}));
-        controller.povDown().onTrue(new InstantCommand(() -> {hoodRot-=0.05;}));
-        controller.povLeft().onTrue(new InstantCommand(() -> {if (shootSpeed <-2) {shootSpeed += 1;}}));
-        controller.povRight().onTrue(new InstantCommand(() -> shootSpeed -= 10));
-        y.onTrue(new InstantCommand(() -> {
-            //shootSpeed = 0.771016 * Math.pow(vision.getAbsoluteDistanceFromTarget(new Pose2d(4.620, 4.030, new Rotation2d(0.0))), 2)+0.579773 * vision.getAbsoluteDistanceFromTarget(new Pose2d(4.620, 4.030, new Rotation2d(0.0))) +42.97778;
-            shootSpeed = -1 * 6.39816 * vision.getAbsoluteDistanceFromTarget(new Pose2d(4.620, 4.030, new Rotation2d(0.0))) - 33.10835;
-            hoodRot = 0.641169 + 1.12764 * Math.log(vision.getAbsoluteDistanceFromTarget(new Pose2d(4.620, 4.030, new Rotation2d(0.0))));
-        }));
-        x.whileTrue(new RunCommand(() ->  {shooter.setRoller(-0.7);shooter.setMouth(0.7);}));
-        a.whileTrue(new RunCommand(() -> climber.manualTest(0.5)));
-        b.whileTrue(new RunCommand(() -> climber.manualTest(-0.5)));
+        a.whileTrue(new RunCommand(() -> shooter.setMouth(-0.9)));
+
+        // getting data
+        // controller.povUp().onTrue(new InstantCommand(() -> {hoodRot+=0.05;}));
+        // controller.povDown().onTrue(new InstantCommand(() -> {hoodRot-=0.05;}));
+        // controller.povLeft().onTrue(new InstantCommand(() -> {if (shootSpeed <-2) {shootSpeed += 1;}}));
+        // controller.povRight().onTrue(new InstantCommand(() -> shootSpeed -= 10));
+
+        rightTrigger.whileTrue(new ShootPreReqCmd(shooter, vision, intake));
+        rightTrigger.whileTrue(drivetrain.applyRequest(() -> {  
+                return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
+                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
+                                    .withRotationalRate(Math.abs(9 * vision.getHeadingError(vision.getTarget())) > 3.5 ? 3.5 * Math.signum(vision.getHeadingError(vision.getTarget())) : 9 * vision.getHeadingError(vision.getTarget()));}));
+        // x.whileTrue(new RunCommand(() ->  {shooter.setRoller(-0.7);shooter.setMouth(0.7);}));
+        //a.whileTrue(new RunCommand(() -> climber.manualTest(0.5)));
+        //b.whileTrue(new RunCommand(() -> climber.manualTest(-0.5)));
         //rightTrigger.onTrue(new RunCommand(() -> {shooter.setRoller(-0.4); shooter.setMouth(0.3);}));
         // reset the field-centric heading on left bumper press
         controller.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         // default drive
         drivetrain.setDefaultCommand(drivetrain.applyRequest(() -> {  
-            double kPAngle = 0.3;
-            if (rightBumper.getAsBoolean()) {
-                return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
-                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
-                                     .withRotationalRate(kPAngle * vision.getHeadingError(new Pose2d(4.620, 4.030, new Rotation2d(0.0))));
-                // return vision.getHeadingError(new Pose2d(4.620, 4.030, new Rotation2d(0.0))) > 0.1 ? drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
-                //                     .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
-                //                     .withRotationalRate(-1 * kPAngle * vision.getHeadingError(new Pose2d(4.620, 4.030, new Rotation2d(0.0)))) : drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
-                //                     .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
-                //                     .withRotationalRate(0);
-                
-                
-            } else if (!isFollowingPath) {
-                return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
-                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
+            if (!isFollowingPath) {
+                return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.25)
+                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.25)
                                     .withRotationalRate(-controller.getRightX() * MaxAngularRate);
             } else {
                 return driveRobotOriented.withVelocityX(0)
@@ -182,7 +189,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        // return autoChooser.getSelected(); // uncomment me when we have an auto
-        return Commands.none();
+        return autoChooser.getSelected(); // uncomment me when we have an auto
+        //return Commands.none();
     }
 }

@@ -1,5 +1,7 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.Util.RectanglePoseArea;
 
@@ -23,4 +25,7 @@ public class Constants {
 
     public static RectanglePoseArea BLUE_CLIMB_AREA = new RectanglePoseArea(new Translation2d(0.0, 3.0), new Translation2d(1.5, 4.5));
     public static RectanglePoseArea RED_CLIMB_AREA = new RectanglePoseArea(new Translation2d(15.0, 3.0), new Translation2d(16.5, 4.5));
+
+    public static Pose2d BLUE_HUB = new Pose2d(4.620, 4.030, new Rotation2d(0.0));
+    public static Pose2d RED_HUB = new Pose2d(11.930, 4.030, new Rotation2d(0.0));
 }

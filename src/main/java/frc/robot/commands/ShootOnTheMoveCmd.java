@@ -75,7 +75,7 @@ public class ShootOnTheMoveCmd extends Command {
         // }
         shooter.setAngle(hoodRot.get());
         shooter.setShooter(speed.get());
-        shooter.setRoller(0);
+        shooter.setRoller(-0.2);
         shooter.setMouth(0);
         SmartDashboard.putNumber("speed", speed.get());
     }

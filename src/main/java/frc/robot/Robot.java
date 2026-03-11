@@ -22,8 +22,8 @@ public class Robot extends TimedRobot {
   public Robot() {
     m_robotContainer = new RobotContainer();
     RobotController.setBrownoutVoltage(Volts.of(6.0));
-    //PathfindingCommand.warmupCommand().schedule();
-    /*m_robotContainer.botState.ALLIANCE = DriverStation.getAlliance().get().toString();*/
+    PathfindingCommand.warmupCommand().schedule();
+    m_robotContainer.botState.ALLIANCE = DriverStation.getAlliance().get().toString();
   }
 
   @Override

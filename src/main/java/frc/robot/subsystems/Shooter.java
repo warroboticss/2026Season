@@ -14,6 +14,7 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
@@ -50,6 +51,8 @@ public class Shooter extends SubsystemBase{
         rollerFollower.optimizeBusUtilization();
         hoodAngler.optimizeBusUtilization();
 
+        hoodAngler.setPosition(0);
+
     }
 
     // methods
@@ -63,13 +66,23 @@ public class Shooter extends SubsystemBase{
         rollersMain.set(speed);
     }
 
+    public Command setRollerCmd(double speed) {
+        return this.run(() -> rollersMain.set(speed));
+    }
+
     public void setShooter(double speed) {
         shooterMain.setControl(m_shooterRequest.withVelocity(speed));
         shooterFollower.setControl(m_shooterRequest.withVelocity(-speed));
     }
 
+    public double getShootSpeed(){
+        return shooterMain.getVelocity().getValueAsDouble();
+    }
+
     public void setAngle(double angle) {
-        hoodAngler.setControl(m_angleRequest.withPosition(angle));
+        if(Math.abs(angle - getHoodRotations()) > 0.1){
+            hoodAngler.setControl(m_angleRequest.withPosition(angle));
+        }
         //System.out.println(angle);
     }
 
