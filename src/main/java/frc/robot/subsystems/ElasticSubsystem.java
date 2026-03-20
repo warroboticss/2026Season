@@ -1,17 +1,10 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Milliamp;
-
-import edu.wpi.first.networktables.BooleanPublisher;
-import edu.wpi.first.networktables.BooleanSubscriber;
 import edu.wpi.first.networktables.DoublePublisher;
-import edu.wpi.first.networktables.IntegerPublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.RobotContainer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -19,8 +12,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class ElasticSubsystem extends SubsystemBase{
     private final NetworkTable elasticTable;
-    private final BooleanPublisher weWonAuto_Publisher;
-    private final BooleanPublisher teamHubActive_Publisher;
     // field errors and distance errors are already put on smartdashboard
     private final DoublePublisher velocityPublisher;
     private final DoublePublisher voltagePublisher;
@@ -35,8 +26,6 @@ public class ElasticSubsystem extends SubsystemBase{
         this.limelight = limelight;
         // we need to fix matchstatemanager
         elasticTable = NetworkTableInstance.getDefault().getTable("elastic_datatable");
-        weWonAuto_Publisher = elasticTable.getBooleanTopic("weWonAuto").publish();
-        teamHubActive_Publisher = elasticTable.getBooleanTopic("teamHubActive").publish();
         velocityPublisher = elasticTable.getDoubleTopic("Velocity").publish();
         voltagePublisher = elasticTable.getDoubleTopic("Voltage").publish();
 

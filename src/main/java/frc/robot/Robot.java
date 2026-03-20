@@ -9,9 +9,6 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.Constants;
-import frc.robot.commands.GetDownCmd;
-import frc.robot.subsystems.Limelight;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
@@ -23,7 +20,7 @@ public class Robot extends TimedRobot {
     m_robotContainer = new RobotContainer();
     RobotController.setBrownoutVoltage(Volts.of(6.0));
     PathfindingCommand.warmupCommand().schedule();
-    m_robotContainer.botState.ALLIANCE = DriverStation.getAlliance().get().toString();
+    m_robotContainer.matchData.ALLIANCE = DriverStation.getAlliance().get().toString();
   }
 
   @Override
@@ -57,19 +54,17 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-  m_robotContainer.isFollowingPath = false;
-  m_robotContainer.vision.seeded = false;
-  //CommandScheduler.getInstance().schedule(new GetDownCmd(m_robotContainer.climber));
+  m_robotContainer.vision.setSeeded(false);
   // checks if we won auto
   /*if (Constants.ALLIANCE.toUpperCase().contains(DriverStation.getGameSpecificMessage())) {
     Constants.WE_WON_AUTO = true;
   } else {
     Constants.WE_WON_AUTO = false;
-  }
+  }*/
   
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
-    }*/
+    }
   }
 
   @Override

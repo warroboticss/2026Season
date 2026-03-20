@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -11,16 +10,13 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 
 public class Climber extends SubsystemBase {
     private final TalonFX climber = new TalonFX(19);
     private final MotionMagicVoltage angleRequest = new MotionMagicVoltage(0.0);
     private final DigitalInput home = new DigitalInput(0);
     public Boolean is_home = false;
-    public Boolean keepClimbing = false;
 
     public Climber() {
        configMotor(climber.getConfigurator());     
@@ -42,24 +38,8 @@ public class Climber extends SubsystemBase {
     }
 
     public Command setClimber(double distance) {
-        return this.run(() -> climber.setControl(angleRequest.withPosition(distance*Constants.ROTATIONS_PER_INCH_CLIMBER)))
-                                .andThen(new InstantCommand(() -> {
-                                keepClimbing = true;
-                            }));
+        return this.run(() -> climber.setControl(angleRequest.withPosition(distance)));
     }
-
-    public void setKeepClimbing(boolean state) {
-        keepClimbing = state;
-    }
-
-    public boolean getKeepClimbing() {
-        return keepClimbing;
-    }
-
-    public void manualTest(double speed){
-        climber.set(speed);
-    }
-
 
     // configs
     private static void configMotor(TalonFXConfigurator config) {

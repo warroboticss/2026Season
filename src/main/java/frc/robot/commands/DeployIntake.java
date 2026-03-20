@@ -4,7 +4,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.IntakeSubsystem;
 
 public class DeployIntake extends Command {
-    // Deploy then intake. Stop spin and retract on release.
     private final IntakeSubsystem intake;
 
     public DeployIntake(IntakeSubsystem intake) {
@@ -13,8 +12,8 @@ public class DeployIntake extends Command {
     }
 
     public void execute() {
-        intake.setIntakePosition(7.3); // dummy value
-        intake.runIntake(0.8); // dummy value
+        intake.setIntakePosition(7.3);
+        intake.runIntake(0.8);
     }
 
     public boolean isFinished(){
@@ -23,6 +22,5 @@ public class DeployIntake extends Command {
 
     public void end(boolean interrupted) {
         intake.stopIntake();
-        //intake.setIntakePosition(5.75); // dummy value
     }
 }

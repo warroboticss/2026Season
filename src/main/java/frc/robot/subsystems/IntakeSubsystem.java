@@ -6,12 +6,8 @@ import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 
@@ -21,8 +17,6 @@ public class IntakeSubsystem extends SubsystemBase {
     private final TalonFX primaryIntakeMotor = new TalonFX(17);
     private final MotionMagicVoltage m_angleRequest = new MotionMagicVoltage(0.0);
 	
-    private double intakePosition;
-
     public IntakeSubsystem() {
         configDeployMotors(leftMotor.getConfigurator());
         configDeployMotors(rightMotor.getConfigurator());

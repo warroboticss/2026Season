@@ -1,6 +1,5 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 
@@ -18,8 +17,6 @@ public class MatchStateManager extends SubsystemBase {
 
     @ Override
     public void periodic() {
-    double timeRemaining = DriverStation.getMatchTime();
-    double timeRemaining_beforeEndgame = timeRemaining - 30;
     //whoWonAuto = ElasticSubsystem.getWhoWonAuto();
 
         // System.out.println(active);

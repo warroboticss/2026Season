@@ -8,21 +8,11 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.path.PathConstraints;
-import com.pathplanner.lib.path.PathPlannerPath;
 
 import static edu.wpi.first.units.Units.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.DoubleSupplier;
-
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -31,22 +21,20 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
-import frc.robot.LimelightHelpers.RawFiducial;
-import frc.robot.Util.BotState;
+import frc.robot.Util.MatchData;
+import frc.robot.generated.TunerConstants;
 
 import frc.robot.commands.DeployIntake;
 import frc.robot.commands.HomeClimberCmd;
-import frc.robot.commands.HoodAngle;
-import frc.robot.commands.ShootOnTheMoveCmd;
-import frc.robot.commands.ShootPreReqCmd;
-import frc.robot.generated.TunerConstants;
+import frc.robot.commands.LowerHoodCmd;
+import frc.robot.commands.ReverseHopperCmd;
+import frc.robot.commands.DefaultShootCmd;
+import frc.robot.commands.ShootCmd;
 
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.ElasticSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.Limelight;
-import frc.robot.subsystems.MatchStateManager;
 import frc.robot.subsystems.Shooter;
 
 
@@ -61,122 +49,75 @@ public class RobotContainer {
     private final SwerveRequest.FieldCentric driveTargeting = new SwerveRequest.FieldCentric()
             .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(0.0) // No deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
-    private final SwerveRequest.RobotCentric driveRobotOriented = new SwerveRequest.RobotCentric()
-            .withDeadband(MaxSpeed * 0.05).withRotationalDeadband(MaxAngularRate * 0.05) // Add a 10% deadband
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     private final Telemetry logger = new Telemetry(MaxSpeed);
+
+    // vars
+    private SendableChooser<Command> autoChooser;
+    private double driveScale = MatchConfig.DRIVE_DEFAULT_SCALE;
 
     // controller
     private final CommandXboxController controller = new CommandXboxController(0);
     private final Trigger a = controller.a();
     private final Trigger b = controller.b();
-    private final Trigger x = controller.x();
     private final Trigger y = controller.y();
+    private final Trigger x = controller.x();
     private final Trigger rightTrigger = controller.rightTrigger();
     private final Trigger leftTrigger = controller.leftTrigger();
+    private final Trigger leftBumper = controller.leftBumper();
+    private final Trigger rightBumper = controller.rightBumper();
 
     // subsystems
     public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
-    public final BotState botState = new BotState();
+    public final MatchData matchData = new MatchData();
     private final Shooter shooter = new Shooter();
     private final IntakeSubsystem intake = new IntakeSubsystem();
-    public final Climber climber = new Climber();
-    // private final ElasticSubsystem elasticSubsystem = new ElasticSubsystem();
-    public final Limelight vision = new Limelight(drivetrain, botState);
-    // private final MatchStateManager matchStateManager = new MatchStateManager();
+    private final Climber climber = new Climber();
+    public final Limelight vision = new Limelight(drivetrain, matchData);
 
-    // vars
-    public boolean isFollowingPath = false;
-    private SendableChooser<Command> autoChooser; 
-    private double shootSpeed = Constants.SHOOTER_DEFAULT_RPS;
-    private double hoodRot = 0;
+    // commands
+    private final DeployIntake deployIntake = new DeployIntake(intake);
+    private final InstantCommand intakeUp = new InstantCommand(() -> intake.setIntakePosition(MatchConfig.INTAKE_UP_POSITION));
+    private final ShootCmd shootCmd = new ShootCmd(shooter, vision, intake);
+    private final ReverseHopperCmd reverseHopperCmd = new ReverseHopperCmd(shooter, intake);
+    private final InstantCommand sprintCmd = new InstantCommand(() -> setDriveScale(MatchConfig.DRIVE_SPRINT_SCALE));
+    private final InstantCommand defaultScaleCmd = new InstantCommand(() -> setDriveScale(MatchConfig.DRIVE_DEFAULT_SCALE));
+    private final ParallelCommandGroup shootAndAlign = new ParallelCommandGroup(new ShootCmd(shooter, vision, intake), drivetrain.applyRequest(() -> {double error = vision.getHeadingError(vision.getTarget());return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * driveScale)
+                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * driveScale)
+                                    .withRotationalRate(Math.abs(9 * error) > 3.5 ? 3.5 * Math.signum(error) : 12 * error);}));
 
-    /*Command shootAndAlign = new ParallelCommandGroup(
-        new RunCommand(() -> drivetrain.applyRequest(() -> { 
-            double kP_feedback = 0.0; // tune this
-            return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
-                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
-                                    .withRotationalRate(ShootOnTheMoveCmd.getTargetAngle() * kP_feedback);}
-            ), drivetrain), new ShootOnTheMoveCmd(shooter)
-    );
-
-    Command autoClimb = new ParallelCommandGroup(climber.setClimber(Constants.CLIMBER_MAX_HEIGHT), GeneratePath(Limelight.getClimbPath()))
-                                                    .andThen(new InstantCommand(() -> {climber.setKeepClimbing(false);}));
-    */
-    public Command GeneratePath(String pathName) {
-        try {  // Load the path we want to pathfind to and follow
-            PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
-            PathConstraints constraints = new PathConstraints(3.0, 4.0,
-                Units.degreesToRadians(540), Units.degreesToRadians(720));
-            Command pathfindingCommand = AutoBuilder.pathfindThenFollowPath(path, constraints);
-            return pathfindingCommand;
-        } catch (Exception error) {
-            System.out.println("Error " + error);
-            return Commands.none();
-        } 
-    }    
+    //helper method
+    public void setDriveScale(double scale) {
+        driveScale = scale;
+    }
 
     public RobotContainer() {
-        isFollowingPath = false;
-        NamedCommands.registerCommand("deployIntake", new DeployIntake(intake));
-        NamedCommands.registerCommand("shoot", new ShootPreReqCmd(shooter, vision, intake));
-        //NamedCommands.registerCommand("rollers", shooter.setRollerCmd(0.8));
+        NamedCommands.registerCommand("deployIntake", deployIntake);
+        NamedCommands.registerCommand("shoot", shootCmd.withTimeout(3.5));
+        NamedCommands.registerCommand("lowerHood", new LowerHoodCmd(shooter));
 
-        autoChooser = AutoBuilder.buildAutoChooser("Testing");
-        //shooter.setDefaultCommand(new ShootOnTheMoveCmd(shooter, () -> {return Constants.SHOOTER_DEFAULT_RPS;}, () -> {return 0.0;}));
-        shooter.setDefaultCommand(shooter.setRollerCmd(-0.2));
+        autoChooser = AutoBuilder.buildAutoChooser(MatchConfig.AUTO);
+        shooter.setDefaultCommand(new DefaultShootCmd(shooter));
         climber.setDefaultCommand(new HomeClimberCmd(climber));
         configureBindings();
     }    
     
     private void configureBindings() {
-        /*a.onTrue(Commands.runOnce(()-> {
-             if (!isFollowingPath) {
-                 isFollowingPath = true;
-                 String path = "WWII";
-                 if (path != null) {
-                     Command limelightPath = GeneratePath(path);
-                     CommandScheduler.getInstance().schedule(limelightPath.andThen(() -> isFollowingPath = false));
-                 }
-             }
-         }));*/
+        y.whileTrue(intakeUp);
+        a.whileTrue(climber.setClimber(Constants.CLIMB_ROT));
+        x.onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
-        //a.onTrue(GeneratePath("Forward"));
+        leftTrigger.whileTrue(deployIntake);
+        rightTrigger.whileTrue(shootAndAlign);
 
-        //rightTrigger.whileTrue(shootAndAlign);
-        y.whileTrue(new InstantCommand(() -> intake.setIntakePosition(1)));
-        leftTrigger.whileTrue(new DeployIntake(intake));
-        a.whileTrue(new RunCommand(() -> shooter.setMouth(-0.9)));
+        leftBumper.whileTrue(reverseHopperCmd);
+        rightBumper.onTrue(sprintCmd);
+        rightBumper.onFalse(defaultScaleCmd);
 
-        // getting data
-        // controller.povUp().onTrue(new InstantCommand(() -> {hoodRot+=0.05;}));
-        // controller.povDown().onTrue(new InstantCommand(() -> {hoodRot-=0.05;}));
-        // controller.povLeft().onTrue(new InstantCommand(() -> {if (shootSpeed <-2) {shootSpeed += 1;}}));
-        // controller.povRight().onTrue(new InstantCommand(() -> shootSpeed -= 10));
-
-        rightTrigger.whileTrue(new ShootPreReqCmd(shooter, vision, intake));
-        rightTrigger.whileTrue(drivetrain.applyRequest(() -> {  
-                return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.5)
-                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.5)
-                                    .withRotationalRate(Math.abs(9 * vision.getHeadingError(vision.getTarget())) > 3.5 ? 3.5 * Math.signum(vision.getHeadingError(vision.getTarget())) : 9 * vision.getHeadingError(vision.getTarget()));}));
-        // x.whileTrue(new RunCommand(() ->  {shooter.setRoller(-0.7);shooter.setMouth(0.7);}));
-        //a.whileTrue(new RunCommand(() -> climber.manualTest(0.5)));
-        //b.whileTrue(new RunCommand(() -> climber.manualTest(-0.5)));
-        //rightTrigger.onTrue(new RunCommand(() -> {shooter.setRoller(-0.4); shooter.setMouth(0.3);}));
-        // reset the field-centric heading on left bumper press
-        controller.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         // default drive
-        drivetrain.setDefaultCommand(drivetrain.applyRequest(() -> {  
-            if (!isFollowingPath) {
-                return drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.25)
-                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.25)
-                                    .withRotationalRate(-controller.getRightX() * MaxAngularRate);
-            } else {
-                return driveRobotOriented.withVelocityX(0)
-                                    .withVelocityY(0)
-                                    .withRotationalRate(0);
-            }
-        })); 
+        drivetrain.setDefaultCommand(drivetrain.applyRequest(() -> drive.withVelocityX((-controller.getLeftY() * MaxSpeed) * driveScale)
+                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * driveScale)
+                                    .withRotationalRate(-controller.getRightX() * MaxAngularRate)
+        )); 
 
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.

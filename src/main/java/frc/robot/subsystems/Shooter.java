@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
@@ -14,11 +13,7 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
-
-// all device ids are temporary and not canon
 
 public class Shooter extends SubsystemBase{
     private final TalonFX rollersMain = new TalonFX(16);
@@ -30,7 +25,6 @@ public class Shooter extends SubsystemBase{
     private final MotionMagicVoltage m_angleRequest = new MotionMagicVoltage(0.0);
     private final MotionMagicVelocityVoltage m_shooterRequest = new MotionMagicVelocityVoltage(0.0);
 
-    private double desiredShooterRPS = Constants.SHOOTER_DEFAULT_RPS;
     public boolean shooting;
 
     public Shooter(){
@@ -60,6 +54,9 @@ public class Shooter extends SubsystemBase{
     public void periodic() {
         //shooterMain.setControl(m_shooterRequest.withVelocity(desiredShooterRPS));
         SmartDashboard.putNumber("hood angle", getHoodRotations());
+        SmartDashboard.putNumber("main shoot speed", getShootSpeed());
+        SmartDashboard.putNumber("follow shoot speed", getFollowShootSpeed());
+        SmartDashboard.putNumber("shooter difference", getShootSpeed()-getFollowShootSpeed());
     }
 
     public void setRoller(double speed) {
@@ -71,12 +68,16 @@ public class Shooter extends SubsystemBase{
     }
 
     public void setShooter(double speed) {
-        shooterMain.setControl(m_shooterRequest.withVelocity(speed));
+        shooterMain.setControl(m_shooterRequest.withVelocity(speed)); // to overcome mechanical problems
         shooterFollower.setControl(m_shooterRequest.withVelocity(-speed));
     }
 
     public double getShootSpeed(){
         return shooterMain.getVelocity().getValueAsDouble();
+    }
+
+    public double getFollowShootSpeed(){
+        return shooterFollower.getVelocity().getValueAsDouble();
     }
 
     public void setAngle(double angle) {
@@ -100,14 +101,6 @@ public class Shooter extends SubsystemBase{
 
     public void setHood(double speed) {
         hoodAngler.set(speed);
-    }
-
-    public void setShooting(boolean state) {
-        shooting = state;
-    }
-
-    public boolean getShooting() {
-        return shooting;
     }
 
 
@@ -140,8 +133,8 @@ public class Shooter extends SubsystemBase{
     slot0.kS = 0.21678;
     slot0.kV = 0.12259; 
     slot0.kA = 0.005602;
-    slot0.kP = 0; 
-    slot0.kI = 0;
+    slot0.kP = 0.1; // 1.9 too big, 0.2 too small 
+    slot0.kI = 0; // 0.35 better, oscilating by 5ish, 0.45 also by 5ish
     slot0.kD = 0; 
     
     // Configuring MotionMagic

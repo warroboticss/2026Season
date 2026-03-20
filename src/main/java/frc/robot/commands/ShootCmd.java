@@ -5,7 +5,7 @@ import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Shooter;
 
-public class ShootPreReqCmd extends Command{
+public class ShootCmd extends Command{
    
     private Shooter shooter;
     private Limelight vision;
@@ -14,12 +14,12 @@ public class ShootPreReqCmd extends Command{
     private double shootSpeed;
     private double hoodRot;
     
-    public ShootPreReqCmd(Shooter shooter, Limelight vision, IntakeSubsystem intake) {
+    public ShootCmd(Shooter shooter, Limelight vision, IntakeSubsystem intake) {
         this.shooter = shooter;
         this.vision = vision;
         this.intake = intake;
 
-        addRequirements(shooter);
+        addRequirements(shooter, intake);
     }
     
     public void execute() {
@@ -30,13 +30,12 @@ public class ShootPreReqCmd extends Command{
         intake.runIntake(0.8);
         //intake.oscillateRoller();
 
-        if(Math.abs(shooter.getHoodRotations() - hoodRot) < 0.1 && Math.abs(shooter.getShootSpeed() - shootSpeed) < 2){
+        if(Math.abs(shooter.getHoodRotations() - hoodRot) < 0.2 && Math.abs(shooter.getShootSpeed() - shootSpeed) < 2){
             shooter.setRoller(-0.7);
             shooter.setMouth(0.9);
         }
 
     }
-
 
     public boolean isFinished() {
         return false;
