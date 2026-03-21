@@ -7,7 +7,6 @@ import frc.robot.Util.RectanglePoseArea;
 
 public class Constants {
     public static double SHOOTER_DEFAULT_RPS = -1 * Math.abs(MatchConfig.DEFAULT_RPS);
-    public static double ROTATIONS_PER_DEGREE_HOOD = 34/360;
     public static double CLIMB_ROT = 47.5;
 
     public static RectanglePoseArea FIELD_AREA = new RectanglePoseArea(new Translation2d(0.0, 0.0), new Translation2d(16.54, 8.02)); 

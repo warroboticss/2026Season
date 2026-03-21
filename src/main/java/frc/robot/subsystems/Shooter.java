@@ -68,7 +68,7 @@ public class Shooter extends SubsystemBase{
     }
 
     public void setShooter(double speed) {
-        shooterMain.setControl(m_shooterRequest.withVelocity(speed)); // to overcome mechanical problems
+        shooterMain.setControl(m_shooterRequest.withVelocity(speed));
         shooterFollower.setControl(m_shooterRequest.withVelocity(-speed));
     }
 

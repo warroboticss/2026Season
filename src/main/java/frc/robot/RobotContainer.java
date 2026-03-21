@@ -13,10 +13,8 @@ import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -30,6 +28,7 @@ import frc.robot.commands.LowerHoodCmd;
 import frc.robot.commands.ReverseHopperCmd;
 import frc.robot.commands.DefaultShootCmd;
 import frc.robot.commands.ShootCmd;
+import frc.robot.commands.AutoShootCmd;
 
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -77,10 +76,10 @@ public class RobotContainer {
     // commands
     private final DeployIntake deployIntake = new DeployIntake(intake);
     private final InstantCommand intakeUp = new InstantCommand(() -> intake.setIntakePosition(MatchConfig.INTAKE_UP_POSITION));
-    private final ShootCmd shootCmd = new ShootCmd(shooter, vision, intake);
     private final ReverseHopperCmd reverseHopperCmd = new ReverseHopperCmd(shooter, intake);
     private final InstantCommand sprintCmd = new InstantCommand(() -> setDriveScale(MatchConfig.DRIVE_SPRINT_SCALE));
-    private final InstantCommand defaultScaleCmd = new InstantCommand(() -> setDriveScale(MatchConfig.DRIVE_DEFAULT_SCALE));
+    private final InstantCommand defaultScaleCmd = new InstantCommand(() -> { if (!a.getAsBoolean()){setDriveScale(MatchConfig.DRIVE_DEFAULT_SCALE);}});
+    private final InstantCommand slowCmd = new InstantCommand(() -> setDriveScale(MatchConfig.DRIVE_SLOW_SCALE));
     private final ParallelCommandGroup shootAndAlign = new ParallelCommandGroup(new ShootCmd(shooter, vision, intake), drivetrain.applyRequest(() -> {double error = vision.getHeadingError(vision.getTarget());return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * driveScale)
                                     .withVelocityY((-controller.getLeftX() * MaxSpeed) * driveScale)
                                     .withRotationalRate(Math.abs(9 * error) > 3.5 ? 3.5 * Math.signum(error) : 12 * error);}));
@@ -92,7 +91,7 @@ public class RobotContainer {
 
     public RobotContainer() {
         NamedCommands.registerCommand("deployIntake", deployIntake);
-        NamedCommands.registerCommand("shoot", shootCmd.withTimeout(3.5));
+        NamedCommands.registerCommand("shoot", new AutoShootCmd(shooter,vision,intake).withTimeout(3.5));
         NamedCommands.registerCommand("lowerHood", new LowerHoodCmd(shooter));
 
         autoChooser = AutoBuilder.buildAutoChooser(MatchConfig.AUTO);
@@ -103,8 +102,9 @@ public class RobotContainer {
     
     private void configureBindings() {
         y.whileTrue(intakeUp);
-        a.whileTrue(climber.setClimber(Constants.CLIMB_ROT));
+        a.whileTrue(climber.setClimber(Constants.CLIMB_ROT).alongWith(slowCmd));
         x.onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        b.onTrue(new InstantCommand(() -> vision.setSeeded(false)));
 
         leftTrigger.whileTrue(deployIntake);
         rightTrigger.whileTrue(shootAndAlign);

@@ -19,7 +19,6 @@ public class Robot extends TimedRobot {
   public Robot() {
     m_robotContainer = new RobotContainer();
     RobotController.setBrownoutVoltage(Volts.of(6.0));
-    PathfindingCommand.warmupCommand().schedule();
     m_robotContainer.matchData.ALLIANCE = DriverStation.getAlliance().get().toString();
   }
 

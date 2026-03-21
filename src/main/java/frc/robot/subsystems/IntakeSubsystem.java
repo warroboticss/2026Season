@@ -35,14 +35,19 @@ public class IntakeSubsystem extends SubsystemBase {
     }
 
   public void oscillateRoller(){
-    double funky = Math.sin(Timer.getFPGATimestamp() * 10) * 0.5;
-    primaryIntakeMotor.set(funky);
-    System.out.println(funky);
+    double squarePoint = Math.signum(Math.sin(Timer.getFPGATimestamp() * 10));
+    double speed = 0.0;
+    if (Math.signum(squarePoint) == -1) {
+      speed = squarePoint * 0.25;
+    } else {
+      speed = squarePoint * 0.8; // amplitude
+    }
+    primaryIntakeMotor.set(speed);
   }
 
-    public void stopIntake(){
-	    primaryIntakeMotor.set(0);
-    }
+  public void stopIntake(){
+	  primaryIntakeMotor.set(0);
+  }
 	
 	public void setIntakePosition(double angle) {
         leftMotor.setControl(m_angleRequest.withPosition(angle));
