@@ -30,7 +30,7 @@ public class ShootCmd extends Command{
     public void execute() {
         target = vision.getTarget();
         distance = vision.getAbsoluteDistanceFromTarget(target);
-        shootSpeed = -1 * 6.39816 * distance - 33.10835;
+        shootSpeed = -1 * 6.39816 * distance - 33.10835 + 1;
         hoodRot = 0.641169 + 1.12764 * Math.log(distance);
 
         //hood checks
@@ -50,7 +50,7 @@ public class ShootCmd extends Command{
         shooter.setAngle(hoodRot);
         shooter.setShooter(shootSpeed);
         //intake.oscillateRoller();
-        intake.runIntake(0.8);
+        intake.runIntake(1.0);
 
         if(Math.abs(shooter.getHoodRotations() - hoodRot) < 0.2 && Math.abs(shooter.getShootSpeed() - shootSpeed) < 2 && vision.getHeadingError(target) <= 0.175){
             shooter.setRoller(-0.7);

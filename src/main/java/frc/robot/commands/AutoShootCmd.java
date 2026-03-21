@@ -28,8 +28,7 @@ public class AutoShootCmd extends Command{
     }
     
     public void execute() {
-        target = vision.getTarget();
-        distance = vision.getAbsoluteDistanceFromTarget(target);
+        distance = 3.3;
         shootSpeed = -1 * 6.39816 * distance - 33.10835;
         hoodRot = 0.641169 + 1.12764 * Math.log(distance);
 

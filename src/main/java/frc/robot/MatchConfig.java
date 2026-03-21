@@ -16,7 +16,7 @@ public class MatchConfig {
      */
 
     // DRIVER CONTROL SELECTION
-    public static final double DRIVE_DEFAULT_SCALE = 0.3;
+    public static final double DRIVE_DEFAULT_SCALE = 0.35;
     public static final double DRIVE_SPRINT_SCALE = 0.7;
     public static final double DRIVE_SLOW_SCALE = 0.1;
     /*
