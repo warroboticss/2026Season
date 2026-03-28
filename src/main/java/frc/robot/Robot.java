@@ -51,13 +51,13 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-  m_robotContainer.vision.setSeeded(false);
-  // checks if we won auto
-  /*if (Constants.ALLIANCE.toUpperCase().contains(DriverStation.getGameSpecificMessage())) {
-    Constants.WE_WON_AUTO = true;
-  } else {
-    Constants.WE_WON_AUTO = false;
-  }*/
+    m_robotContainer.vision.setSeeded(false);
+    // checks if we won auto
+    if (m_robotContainer.matchData.ALLIANCE.toUpperCase().contains(DriverStation.getGameSpecificMessage())) {
+      m_robotContainer.matchData.WE_WON_AUTO = true;
+    } else {
+      m_robotContainer.matchData.WE_WON_AUTO = false;
+    }
   
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();

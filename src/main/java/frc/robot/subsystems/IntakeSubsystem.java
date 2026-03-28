@@ -7,6 +7,8 @@ import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.MatchConfig;
+
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
@@ -38,9 +40,9 @@ public class IntakeSubsystem extends SubsystemBase {
     double squarePoint = Math.signum(Math.sin(Timer.getFPGATimestamp() * 10));
     double speed = 0.0;
     if (Math.signum(squarePoint) == -1) {
-      speed = squarePoint * 0.25;
+      speed = squarePoint * MatchConfig.LOWER_AMP;
     } else {
-      speed = squarePoint * 0.8; // amplitude
+      speed = squarePoint * MatchConfig.UPPER_AMP; // amplitude
     }
     primaryIntakeMotor.set(speed);
   }

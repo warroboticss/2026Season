@@ -1,18 +1,33 @@
 package frc.robot;
 
+import edu.wpi.first.wpilibj.LEDPattern;
+
 public class MatchConfig {
-    // Last Updated: 3/18/2026
+    // Last Updated: 3/27/2026
 
     // INTAKE UP HEIGHT
     public static final double INTAKE_UP_POSITION = 0.0;
     // DEFAULT SHOOTER RPS
     public static final double DEFAULT_RPS = 20.0;
+    // LOWER OSCILATION AMPLITUDE
+    public static final double LOWER_AMP = 0.3;
+    // UPPER OSCILATION AMPLITUDE
+    public static final double UPPER_AMP = 0.3;
 
-    // AUTONOMOUS SELECTION
-    public static final String AUTO = "Two Cycle";
+    // USE MATCH STATE LED
+    public static final boolean USE_MATCH_STATE = false;
+
+    // USE INTAKE OSCILATION WHILE SHOOTING
+    public static final boolean USE_OSCILATION = true;
+
+    // DEFAULT LED BEHAVIOR (IF MATCH STATE IS OFF)
+    public static final LEDPattern DEFAULT_PATTERN = Constants.RED_SCROLL_GRADIENT;
     /*
      Options:
-        "Two Cycle" - Intake/Shoot Twice, Ends in Alliance Zone
+        Constants.RAINBOW_SCROLL - Rainbow Gradient, Scrolling LED
+        Constants.RED_SCROLL_GRADIENT - Red Gradient, Scrolling LED
+        Constants.SOLID_GREEN - Solid Green Color
+        Constants.OFF - All Black
      */
 
     // DRIVER CONTROL SELECTION

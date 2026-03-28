@@ -5,7 +5,6 @@ import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -81,7 +80,7 @@ public class Limelight extends SubsystemBase {
         return Math.abs(distanceToTarget);
     }
 
-    public Translation2d getTargetOffset(double flightTime) {
+    public Pose2d getOffsetTarget(double flightTime, Pose2d target) {
         // gets robot motion
         double vx_robotRelative = driveState.Speeds.vxMetersPerSecond;
         double vy_robotRelative = driveState.Speeds.vyMetersPerSecond;
@@ -91,7 +90,7 @@ public class Limelight extends SubsystemBase {
         double vx_fieldRelative = vx_robotRelative * Math.cos(robotRotation) - Math.sin(robotRotation) * vy_robotRelative;
         double vy_fieldRelative = vx_robotRelative * Math.sin(robotRotation) + Math.cos(robotRotation) * vy_robotRelative;
         // returns target offset (inverted)
-        return new Translation2d(-vx_fieldRelative * flightTime, -vy_fieldRelative * flightTime); 
+        return new Pose2d((-1 * vx_fieldRelative * flightTime) + target.getX(), (-1 * vy_fieldRelative * flightTime) + target.getY(), new Rotation2d(0)); 
     }
     
     public double getHeadingError(Pose2d target) {
@@ -103,12 +102,44 @@ public class Limelight extends SubsystemBase {
         double robotYaw = botPose.getRotation().getRadians();
         // returns angle to target (wrapped for π, -π)
         double angleError = targetToNormal - robotYaw;
-        //System.out.println("Error: " + Math.atan2(Math.sin(angleError), Math.cos(angleError)));
         return Math.atan2(Math.sin(angleError), Math.cos(angleError));
     }
 
     public Pose2d getBotPose() {
         return driveState.Pose;
+    }
+
+    public double getTOF() {
+        return getAbsoluteDistanceFromTarget(getTarget()) * 0;
+    }
+
+    public double getFlywheelRPS() {
+        double distance = getAbsoluteDistanceFromTarget(getTarget());
+        double kPVelDamp = 0.175;
+        double shootSpeed = -1 * 6.39816 * distance - 33.10835 + 1;
+
+        // shoot checks
+        if (Math.signum(shootSpeed) == 1) {
+            shootSpeed = Constants.SHOOTER_DEFAULT_RPS;
+        } else if (distance >= 4.0) {
+            shootSpeed += distance * kPVelDamp;
+        }
+
+        return shootSpeed;
+    }
+
+    public double getHoodAngle() {
+        double distance = getAbsoluteDistanceFromTarget(getTarget());
+        double hoodRot = 0.641169 + 1.12764 * Math.log(distance);
+
+        //hood checks
+        if (hoodRot <= 0) {
+            hoodRot = 0;
+        } else if (hoodRot > 2.45) {
+            hoodRot = 2.45;
+        }
+
+        return hoodRot;
     }
 
     public double getBotSpeed() {

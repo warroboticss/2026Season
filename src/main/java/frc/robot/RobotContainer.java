@@ -12,6 +12,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -31,8 +32,11 @@ import frc.robot.commands.AutoShootCmd;
 
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.ElasticSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.LightSubsystem;
 import frc.robot.subsystems.Limelight;
+import frc.robot.subsystems.MatchStateManager;
 import frc.robot.subsystems.Shooter;
 
 
@@ -50,8 +54,8 @@ public class RobotContainer {
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
     // vars
-    private SendableChooser<Command> autoChooser;
     private double driveScale = MatchConfig.DRIVE_DEFAULT_SCALE;
+    private SendableChooser<String> autoChooser = new SendableChooser<String>();
 
     // controller
     private final CommandXboxController controller = new CommandXboxController(0);
@@ -71,6 +75,9 @@ public class RobotContainer {
     private final IntakeSubsystem intake = new IntakeSubsystem();
     private final Climber climber = new Climber();
     public final Limelight vision = new Limelight(drivetrain, matchData);
+    public final MatchStateManager stateManager = new MatchStateManager(matchData);
+    private final LightSubsystem light = new LightSubsystem(stateManager);
+    private final ElasticSubsystem elastic = new ElasticSubsystem(stateManager, vision);
 
     // commands
     private final DeployIntake deployIntake = new DeployIntake(intake);
@@ -91,10 +98,19 @@ public class RobotContainer {
 
     public RobotContainer() {
         NamedCommands.registerCommand("deployIntake", deployIntake);
-        NamedCommands.registerCommand("shoot", new AutoShootCmd(shooter, vision, intake).withTimeout(3.5));
+        NamedCommands.registerCommand("shoot", new AutoShootCmd(shooter, intake).withTimeout(3.5));
         NamedCommands.registerCommand("lowerHood", new LowerHoodCmd(shooter));
 
-        autoChooser = AutoBuilder.buildAutoChooser(MatchConfig.AUTO);
+        for (String auto : Constants.AUTOS) {
+           if (auto == Constants.AUTOS[0]){
+                autoChooser.setDefaultOption(auto, auto);
+           }
+           else {
+            autoChooser.addOption(auto, auto);
+           }
+        }
+
+        SmartDashboard.putData("Auto:", autoChooser);
         shooter.setDefaultCommand(new DefaultShootCmd(shooter));
         climber.setDefaultCommand(new HomeClimberCmd(climber));
         configureBindings();
@@ -103,6 +119,7 @@ public class RobotContainer {
     private void configureBindings() {
         y.whileTrue(intakeUp);
         a.whileTrue(climber.setClimber(Constants.CLIMB_ROT).alongWith(slowCmd));
+        a.onFalse(defaultScaleCmd);
         x.onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         b.onTrue(seedVision);
 
@@ -131,7 +148,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return autoChooser.getSelected(); 
+        return AutoBuilder.buildAutoChooser(SmartDashboard.getData("Auto:").toString()).getSelected(); 
         //return Commands.none();
     }
 }
