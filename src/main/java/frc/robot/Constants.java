@@ -14,12 +14,14 @@ public class Constants {
     public static final String[] AUTOS = {"Two Cycle"};
 
     public static final double SHOOTER_DEFAULT_RPS = -1 * Math.abs(MatchConfig.DEFAULT_RPS);
-    public static final double CLIMB_ROT = 47.5;
+    public static final double CLIMB_ROT = 47.8;
 
     public static final Distance SPACING = Meters.of(1.0 / 60);
     public static final LEDPattern RAINBOW_SCROLL = LEDPattern.rainbow(255, 128).scrollAtAbsoluteSpeed(MetersPerSecond.of(1), SPACING);
-    public static final LEDPattern RED_SCROLL_GRADIENT = LEDPattern.gradient(LEDPattern.GradientType.kContinuous, new Color(150, 0, 0), new Color(255,0,0)).scrollAtAbsoluteSpeed(MetersPerSecond.of(1), SPACING);
-    public static final LEDPattern SOLID_GREEN = LEDPattern.solid(new Color(0, 255 , 0));
+    public static final LEDPattern RED_SCROLL_GRADIENT = LEDPattern.gradient(LEDPattern.GradientType.kContinuous, new Color(0, 150, 0), new Color(0,255,0)).scrollAtAbsoluteSpeed(MetersPerSecond.of(1), SPACING);
+    public static final LEDPattern PINK_SCROLL_GRADIENT = LEDPattern.gradient(LEDPattern.GradientType.kContinuous, new Color(0, 255, 111), new Color(142, 237, 183)).scrollAtAbsoluteSpeed(MetersPerSecond.of(1), SPACING);
+    public static final LEDPattern SOLID_GREEN = LEDPattern.solid(new Color(255, 0 , 0));
+    public static final LEDPattern SOLID_RED = LEDPattern.solid(new Color(0, 255, 0));
     public static final LEDPattern OFF = LEDPattern.kOff;
 
     public static final RectanglePoseArea FIELD_AREA = new RectanglePoseArea(new Translation2d(0.0, 0.0), new Translation2d(16.54, 8.02)); 

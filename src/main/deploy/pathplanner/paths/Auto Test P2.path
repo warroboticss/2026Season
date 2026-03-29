@@ -83,7 +83,7 @@
       "minWaypointRelativePos": 0.9859343603482857,
       "maxWaypointRelativePos": 2.8452779638312293,
       "constraints": {
-        "maxVelocity": 0.9,
+        "maxVelocity": 3.0,
         "maxAcceleration": 3.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
@@ -111,6 +111,16 @@
       "rotationOffset": 0.0,
       "minWaypointRelativePos": 1.8325519089082436,
       "maxWaypointRelativePos": 3.0221031480241125,
+      "name": "Point Towards Zone"
+    },
+    {
+      "fieldPosition": {
+        "x": 5.2,
+        "y": 100.0
+      },
+      "rotationOffset": 0.0,
+      "minWaypointRelativePos": 3.489534098581992,
+      "maxWaypointRelativePos": 3.889264010803514,
       "name": "Point Towards Zone"
     }
   ],
@@ -140,5 +150,5 @@
     "velocity": 0,
     "rotation": 105.31310902794388
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }

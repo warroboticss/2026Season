@@ -44,11 +44,7 @@ public class AutoShootCmd extends Command{
 
         shooter.setAngle(hoodRot);
         shooter.setShooter(shootSpeed);
-        if (MatchConfig.USE_OSCILATION) {
-            intake.oscillateRoller();
-        } else {
-            intake.runIntake(1.0);
-        }
+        intake.oscillateRoller();
 
         if(Math.abs(shooter.getHoodRotations() - hoodRot) < 0.2 && Math.abs(shooter.getShootSpeed() - shootSpeed) < 2){
             shooter.setRoller(-0.7);
@@ -66,4 +62,5 @@ public class AutoShootCmd extends Command{
         shooter.setMouth(0.0);
         shooter.setRoller(-0.2);
         shooter.setAngle(0.0);
+        intake.runIntake(1.0);
     }}

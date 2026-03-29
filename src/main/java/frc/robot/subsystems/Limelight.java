@@ -1,5 +1,8 @@
 package frc.robot.subsystems;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 
 import edu.wpi.first.math.VecBuilder;
@@ -10,6 +13,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
+import frc.robot.MatchConfig;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.Util.MatchData;
 
@@ -20,7 +24,7 @@ public class Limelight extends SubsystemBase {
 
     private Boolean enable = true;
     private Boolean seeded = false;
-    private String ll = "limelight-shooter";
+    private ArrayList<String> limelights = MatchConfig.LIMELIGHTS;
 
     private int fieldError = 0;
     private int distanceError = 0;
@@ -35,38 +39,40 @@ public class Limelight extends SubsystemBase {
     @Override
     public void periodic() {
         if (enable) {
-            LimelightHelpers.SetRobotOrientation(ll, drivetrain.getState().Pose.getRotation().getDegrees(),0,0,0,0,0);
-            Pose2d botPose = LimelightHelpers.getBotPose2d_wpiBlue("limelight-shooter");
-            if (!seeded && LimelightHelpers.getTV(ll) && Constants.FIELD_AREA.isPoseWithinArea(botPose)) {
-                drivetrain.resetPose(botPose);
-                seeded = true;
-            }
-            if (LimelightHelpers.getTV(ll) && seeded) {
-                Pose2d lastPose = drivetrain.getState().Pose;
-                PoseEstimate mt2;
-                if (LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(ll) != null) {
-                    mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(ll);
-                } else{
-                    mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue(ll);
+            for (String ll : limelights) {
+                LimelightHelpers.SetRobotOrientation(ll, drivetrain.getState().Pose.getRotation().getDegrees(),0,0,0,0,0);
+                Pose2d botPose = LimelightHelpers.getBotPose2d_wpiBlue("limelight-shooter");
+                if (!seeded && LimelightHelpers.getTV(ll) && Constants.FIELD_AREA.isPoseWithinArea(botPose)) {
+                    drivetrain.resetPose(botPose);
+                    seeded = true;
                 }
-                if (Constants.FIELD_AREA.isPoseWithinArea(mt2.pose) && (lastPose.getTranslation().getDistance(mt2.pose.getTranslation()) < 0.5)) {
-                            drivetrain.addVisionMeasurement(
-                                mt2.pose,
-                                Timer.getFPGATimestamp() - ((LimelightHelpers.getLatency_Capture(ll) + LimelightHelpers.getLatency_Pipeline(ll)) / 1000.0),
-                                VecBuilder.fill(0.5, 0.5, 9999999)); 
+                if (LimelightHelpers.getTV(ll) && seeded) {
+                    Pose2d lastPose = drivetrain.getState().Pose;
+                    PoseEstimate mt2;
+                    if (LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(ll) != null) {
+                        mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(ll);
+                    } else{
+                        mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue(ll);
+                    }
+                    if (Constants.FIELD_AREA.isPoseWithinArea(mt2.pose) && (lastPose.getTranslation().getDistance(mt2.pose.getTranslation()) < 0.5)) {
+                                drivetrain.addVisionMeasurement(
+                                    mt2.pose,
+                                    Timer.getFPGATimestamp() - ((LimelightHelpers.getLatency_Capture(ll) + LimelightHelpers.getLatency_Pipeline(ll)) / 1000.0),
+                                    VecBuilder.fill(0.5, 0.5, 9999999)); 
+                    } else {
+                        fieldError++;
+                        SmartDashboard.putNumber("Field Error", fieldError);
+                    }
                 } else {
-                    fieldError++;
-                    SmartDashboard.putNumber("Field Error", fieldError);
+                    distanceError++;
+                    SmartDashboard.putNumber("Distance Error", distanceError);
                 }
-            } else {
-                distanceError++;
-                SmartDashboard.putNumber("Distance Error", distanceError);
             }
+            driveState = drivetrain.getState();
+            double distance = getAbsoluteDistanceFromTarget(getTarget());
+            SmartDashboard.putNumber("Distance", distance);
+            SmartDashboard.putNumber("Desired shoot speed", -1 * 6.39816 * distance - 33.10835);
         }
-        driveState = drivetrain.getState();
-        double distance = getAbsoluteDistanceFromTarget(getTarget());
-        SmartDashboard.putNumber("Distance", distance);
-        SmartDashboard.putNumber("Desired shoot speed", -1 * 6.39816 * distance - 33.10835);
     }
 
     public void setSeeded(Boolean state) {
@@ -107,39 +113,6 @@ public class Limelight extends SubsystemBase {
 
     public Pose2d getBotPose() {
         return driveState.Pose;
-    }
-
-    public double getTOF() {
-        return getAbsoluteDistanceFromTarget(getTarget()) * 0;
-    }
-
-    public double getFlywheelRPS() {
-        double distance = getAbsoluteDistanceFromTarget(getTarget());
-        double kPVelDamp = 0.175;
-        double shootSpeed = -1 * 6.39816 * distance - 33.10835 + 1;
-
-        // shoot checks
-        if (Math.signum(shootSpeed) == 1) {
-            shootSpeed = Constants.SHOOTER_DEFAULT_RPS;
-        } else if (distance >= 4.0) {
-            shootSpeed += distance * kPVelDamp;
-        }
-
-        return shootSpeed;
-    }
-
-    public double getHoodAngle() {
-        double distance = getAbsoluteDistanceFromTarget(getTarget());
-        double hoodRot = 0.641169 + 1.12764 * Math.log(distance);
-
-        //hood checks
-        if (hoodRot <= 0) {
-            hoodRot = 0;
-        } else if (hoodRot > 2.45) {
-            hoodRot = 2.45;
-        }
-
-        return hoodRot;
     }
 
     public double getBotSpeed() {

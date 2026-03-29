@@ -2,6 +2,9 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Volts;
 
+import com.pathplanner.lib.commands.FollowPathCommand;
+import com.pathplanner.lib.commands.PathfindingCommand;
+
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -17,12 +20,14 @@ public class Robot extends TimedRobot {
   public Robot() {
     m_robotContainer = new RobotContainer();
     RobotController.setBrownoutVoltage(Volts.of(6.0));
+    FollowPathCommand.warmupCommand();
+    PathfindingCommand.warmupCommand();
     m_robotContainer.matchData.ALLIANCE = DriverStation.getAlliance().get().toString();
   }
 
   @Override
   public void robotPeriodic() {
-    CommandScheduler.getInstance().run();
+    CommandScheduler.getInstance().run();  
   }
 
   @Override
@@ -53,7 +58,7 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
     m_robotContainer.vision.setSeeded(false);
     // checks if we won auto
-    if (m_robotContainer.matchData.ALLIANCE.toUpperCase().contains(DriverStation.getGameSpecificMessage())) {
+    if (m_robotContainer.matchData.ALLIANCE.equals(DriverStation.getGameSpecificMessage())) {
       m_robotContainer.matchData.WE_WON_AUTO = true;
     } else {
       m_robotContainer.matchData.WE_WON_AUTO = false;
