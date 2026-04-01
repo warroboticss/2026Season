@@ -13,6 +13,7 @@ public class DeployIntake extends Command {
 
     public void execute() {
         intake.setIntakePosition(7.2);
+        intake.setOverrideOscilation(true);
         intake.runIntake(1.0);
     }
 
@@ -21,6 +22,7 @@ public class DeployIntake extends Command {
     }
 
     public void end(boolean interrupted) {
+        intake.setOverrideOscilation(false);
         intake.stopIntake();
     }
 }

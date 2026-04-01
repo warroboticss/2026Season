@@ -1,8 +1,5 @@
 package frc.robot.subsystems;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 
 import edu.wpi.first.math.VecBuilder;
@@ -13,7 +10,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
-import frc.robot.MatchConfig;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.Util.MatchData;
 
@@ -24,10 +20,11 @@ public class Limelight extends SubsystemBase {
 
     private Boolean enable = true;
     private Boolean seeded = false;
-    private ArrayList<String> limelights = MatchConfig.LIMELIGHTS;
+    private String ll = "limelight-shooter";
 
     private int fieldError = 0;
     private int distanceError = 0;
+    private double kPCorr = 1;
 
     public Limelight(CommandSwerveDrivetrain drivetrain, MatchData matchData) {
         this.matchData = matchData;
@@ -39,40 +36,37 @@ public class Limelight extends SubsystemBase {
     @Override
     public void periodic() {
         if (enable) {
-            for (String ll : limelights) {
-                LimelightHelpers.SetRobotOrientation(ll, drivetrain.getState().Pose.getRotation().getDegrees(),0,0,0,0,0);
+            LimelightHelpers.SetRobotOrientation(ll, drivetrain.getState().Pose.getRotation().getDegrees(),0,0,0,0,0);
+            if (!seeded) {
                 Pose2d botPose = LimelightHelpers.getBotPose2d_wpiBlue("limelight-shooter");
-                if (!seeded && LimelightHelpers.getTV(ll) && Constants.FIELD_AREA.isPoseWithinArea(botPose)) {
+                if (botPose != null && Constants.FIELD_AREA.isPoseWithinArea(botPose)) {
                     drivetrain.resetPose(botPose);
                     seeded = true;
                 }
-                if (LimelightHelpers.getTV(ll) && seeded) {
-                    Pose2d lastPose = drivetrain.getState().Pose;
-                    PoseEstimate mt2;
-                    if (LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(ll) != null) {
-                        mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(ll);
-                    } else{
-                        mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue(ll);
-                    }
-                    if (Constants.FIELD_AREA.isPoseWithinArea(mt2.pose) && (lastPose.getTranslation().getDistance(mt2.pose.getTranslation()) < 0.5)) {
-                                drivetrain.addVisionMeasurement(
-                                    mt2.pose,
-                                    Timer.getFPGATimestamp() - ((LimelightHelpers.getLatency_Capture(ll) + LimelightHelpers.getLatency_Pipeline(ll)) / 1000.0),
-                                    VecBuilder.fill(0.5, 0.5, 9999999)); 
-                    } else {
-                        fieldError++;
-                        SmartDashboard.putNumber("Field Error", fieldError);
-                    }
+            }                
+            if (LimelightHelpers.getTV(ll) && seeded) {
+                Pose2d lastPose = drivetrain.getState().Pose;
+                PoseEstimate mt2;
+                if (LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(ll) != null) {
+                    mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(ll);
                 } else {
-                    distanceError++;
-                    SmartDashboard.putNumber("Distance Error", distanceError);
+                    mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue(ll);
                 }
+                if (Constants.FIELD_AREA.isPoseWithinArea(mt2.pose) && (lastPose.getTranslation().getDistance(mt2.pose.getTranslation()) < 0.5)) {
+                            drivetrain.addVisionMeasurement(
+                                mt2.pose,
+                                Timer.getFPGATimestamp() - ((LimelightHelpers.getLatency_Capture(ll) + LimelightHelpers.getLatency_Pipeline(ll)) / 1000.0),
+                                VecBuilder.fill(0.5, 0.5, 9999999)); 
+                } else {
+                    fieldError++;
+                    SmartDashboard.putNumber("Field Error", fieldError);
+                }
+            } else {
+                distanceError++;
+                SmartDashboard.putNumber("Distance Error", distanceError);
             }
-            driveState = drivetrain.getState();
-            double distance = getAbsoluteDistanceFromTarget(getTarget());
-            SmartDashboard.putNumber("Distance", distance);
-            SmartDashboard.putNumber("Desired shoot speed", -1 * 6.39816 * distance - 33.10835);
         }
+        driveState = drivetrain.getState();
     }
 
     public void setSeeded(Boolean state) {
@@ -86,7 +80,10 @@ public class Limelight extends SubsystemBase {
         return Math.abs(distanceToTarget);
     }
 
-    public Pose2d getOffsetTarget(double flightTime, Pose2d target) {
+    public Pose2d getOffsetTarget(Pose2d target) {
+        double distance = getAbsoluteDistanceFromTarget(target);
+        double flightTime = -1 * 0.00656791 * Math.pow(distance,2) + 0.263805 * distance + 0.213562;
+
         // gets robot motion
         double vx_robotRelative = driveState.Speeds.vxMetersPerSecond;
         double vy_robotRelative = driveState.Speeds.vyMetersPerSecond;
@@ -95,8 +92,11 @@ public class Limelight extends SubsystemBase {
         // convert robot relative velocities to field relative velocities
         double vx_fieldRelative = vx_robotRelative * Math.cos(robotRotation) - Math.sin(robotRotation) * vy_robotRelative;
         double vy_fieldRelative = vx_robotRelative * Math.sin(robotRotation) + Math.cos(robotRotation) * vy_robotRelative;
-        // returns target offset (inverted)
-        return new Pose2d((-1 * vx_fieldRelative * flightTime) + target.getX(), (-1 * vy_fieldRelative * flightTime) + target.getY(), new Rotation2d(0)); 
+
+        double driftX = (-1 * vx_fieldRelative * flightTime) * kPCorr;
+        double driftY = (-1 * vy_fieldRelative * flightTime) * kPCorr;
+        // returns offset target
+        return new Pose2d(driftX + target.getX(), driftY + target.getY(), new Rotation2d(0)); 
     }
     
     public double getHeadingError(Pose2d target) {

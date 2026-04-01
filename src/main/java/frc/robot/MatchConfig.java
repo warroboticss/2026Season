@@ -1,8 +1,5 @@
 package frc.robot;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import edu.wpi.first.wpilibj.LEDPattern;
 
 public class MatchConfig {
@@ -16,8 +13,7 @@ public class MatchConfig {
     public static final double LOWER_AMP = 0.35;
     // UPPER OSCILATION AMPLITUDE
     public static final double UPPER_AMP = 0.8;
-    // LIMELIGHTS TO USE
-   public static final ArrayList<String> LIMELIGHTS = new ArrayList<String>(List.of("limelight-shooter"));
+
     // DEFAULT LED BEHAVIOR (IF MATCH STATE IS OFF)
     public static final LEDPattern DEFAULT_PATTERN = Constants.RAINBOW_SCROLL;
     /*

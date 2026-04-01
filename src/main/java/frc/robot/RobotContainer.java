@@ -6,6 +6,7 @@ package frc.robot;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
 import static edu.wpi.first.units.Units.*;
@@ -55,7 +56,7 @@ public class RobotContainer {
 
     // vars
     private double driveScale = MatchConfig.DRIVE_DEFAULT_SCALE;
-    private SendableChooser<String> autoChooser = new SendableChooser<String>();
+    private SendableChooser<Command> autoChooser;
 
     // controller
     private final CommandXboxController controller = new CommandXboxController(0);
@@ -75,7 +76,7 @@ public class RobotContainer {
     private final IntakeSubsystem intake = new IntakeSubsystem();
     private final Climber climber = new Climber();
     public final Limelight vision = new Limelight(drivetrain, matchData);
-    public final MatchStateManager stateManager = new MatchStateManager(matchData);
+    public final MatchStateManager stateManager = new MatchStateManager(matchData, controller);
     private final LightSubsystem light = new LightSubsystem(stateManager);
     private final ElasticSubsystem elastic = new ElasticSubsystem(stateManager, vision);
 
@@ -87,8 +88,8 @@ public class RobotContainer {
     private final InstantCommand defaultScaleCmd = new InstantCommand(() -> { if (!a.getAsBoolean()){setDriveScale(MatchConfig.DRIVE_DEFAULT_SCALE);}});
     private final InstantCommand slowCmd = new InstantCommand(() -> setDriveScale(MatchConfig.DRIVE_SLOW_SCALE));
     private final InstantCommand seedVision = new InstantCommand(() -> vision.setSeeded(false));
-    private final ParallelCommandGroup shootAndAlign = new ParallelCommandGroup(new ShootCmd(shooter, vision, intake), drivetrain.applyRequest(() -> {double error = vision.getHeadingError(vision.getTarget());return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * driveScale)
-                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * driveScale)
+    private final ParallelCommandGroup shootAndAlign = new ParallelCommandGroup(new ShootCmd(shooter, vision, intake), drivetrain.applyRequest(() -> {double error = vision.getHeadingError(vision.getTarget());return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.2)
+                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.2)
                                     .withRotationalRate(Math.abs(9 * error) > 3.5 ? 3.5 * Math.signum(error) : 12 * error);}));
 
     //helper method
@@ -101,18 +102,14 @@ public class RobotContainer {
         NamedCommands.registerCommand("shoot", new AutoShootCmd(shooter, intake).withTimeout(3.5));
         NamedCommands.registerCommand("lowerHood", new LowerHoodCmd(shooter));
 
-        for (String auto : Constants.AUTOS) {
-           if (auto == Constants.AUTOS[0]){
-                autoChooser.setDefaultOption(auto, auto);
-           }
-           else {
-            autoChooser.addOption(auto, auto);
-           }
-        }
+        autoChooser = AutoBuilder.buildAutoChooser(Constants.AUTOS[0]);
+        SmartDashboard.putData("Select Auto", autoChooser);
 
-        SmartDashboard.putData("Auto:", autoChooser);
         shooter.setDefaultCommand(new DefaultShootCmd(shooter));
         climber.setDefaultCommand(new HomeClimberCmd(climber));
+        light.setDefaultCommand(light.defaultLightCmd());
+        elastic.setDefaultCommand(elastic.defaultElasticCmd());
+        stateManager.setDefaultCommand(stateManager.defaultStateCmd());
         configureBindings();
     }    
     
@@ -148,7 +145,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        //return AutoBuilder.buildAutoChooser("Two Cycle").getSelected(); 
+        //return AutoBuilder.buildAuto(SmartDashboard.getData("Select Auto").toString()); 
         return Commands.none();
     }
 }

@@ -24,7 +24,7 @@ public class ShootCmd extends Command{
         this.vision = vision;
         this.intake = intake;
 
-        addRequirements(shooter, intake);
+        addRequirements(shooter);
     }
     
     public void execute() {

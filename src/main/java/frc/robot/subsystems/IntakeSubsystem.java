@@ -16,35 +16,37 @@ import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 public class IntakeSubsystem extends SubsystemBase {
 	private final TalonFX leftMotor = new TalonFX(13);
 	private final TalonFX rightMotor = new TalonFX(14);
-    private final TalonFX primaryIntakeMotor = new TalonFX(17);
-    private final MotionMagicVoltage m_angleRequest = new MotionMagicVoltage(0.0);
+  private final TalonFX primaryIntakeMotor = new TalonFX(17);
+  private final MotionMagicVoltage m_angleRequest = new MotionMagicVoltage(0.0);
+  private boolean overrideOscilation = false;
 	
-    public IntakeSubsystem() {
-        configDeployMotors(leftMotor.getConfigurator());
-        configDeployMotors(rightMotor.getConfigurator());
-        //rightMotor.setControl(new Follower(13, MotorAlignmentValue.Opposed));
-        
-        configSpinnyMotor(primaryIntakeMotor.getConfigurator());
+  public IntakeSubsystem() {
+    configDeployMotors(leftMotor.getConfigurator());
+    configDeployMotors(rightMotor.getConfigurator());
+      
+    configSpinnyMotor(primaryIntakeMotor.getConfigurator());
 
-        leftMotor.optimizeBusUtilization();
-        rightMotor.optimizeBusUtilization();
-        primaryIntakeMotor.optimizeBusUtilization();
-    }
+    leftMotor.optimizeBusUtilization();
+    rightMotor.optimizeBusUtilization();
+    primaryIntakeMotor.optimizeBusUtilization();
+  }
 
     // methods
 	public void runIntake(double speed){
-	    primaryIntakeMotor.set(speed);
-    }
+	  primaryIntakeMotor.set(speed);
+  }
 
   public void oscillateRoller(){
-    double squarePoint = Math.signum(Math.sin(Timer.getFPGATimestamp() * 10));
-    double speed = 0.0;
-    if (Math.signum(squarePoint) == -1) {
-      speed = squarePoint * MatchConfig.LOWER_AMP;
-    } else {
-      speed = squarePoint * MatchConfig.UPPER_AMP; // amplitude
+    if (overrideOscilation == false) {
+      double squarePoint = Math.signum(Math.sin(Timer.getFPGATimestamp() * 10));
+      double speed = 0.0;
+      if (Math.signum(squarePoint) == -1) {
+        speed = squarePoint * MatchConfig.LOWER_AMP;
+      } else {
+        speed = squarePoint * MatchConfig.UPPER_AMP; // amplitude
+      }
+      primaryIntakeMotor.set(speed);
     }
-    primaryIntakeMotor.set(speed);
   }
 
   public void stopIntake(){
@@ -52,12 +54,16 @@ public class IntakeSubsystem extends SubsystemBase {
   }
 	
 	public void setIntakePosition(double angle) {
-        leftMotor.setControl(m_angleRequest.withPosition(angle));
-        rightMotor.setControl(m_angleRequest.withPosition(-angle));
-    }
+    leftMotor.setControl(m_angleRequest.withPosition(angle));
+    rightMotor.setControl(m_angleRequest.withPosition(-angle));
+  }
   
   public void setDeploySpeed(double speed){
     leftMotor.set(0);
+  }
+
+  public void setOverrideOscilation(boolean state) {
+    overrideOscilation = state;
   }
 
 

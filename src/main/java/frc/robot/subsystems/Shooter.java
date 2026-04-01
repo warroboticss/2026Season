@@ -11,7 +11,6 @@ import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -47,16 +46,6 @@ public class Shooter extends SubsystemBase{
 
         hoodAngler.setPosition(0);
 
-    }
-
-    // methods
-    @Override
-    public void periodic() {
-        //shooterMain.setControl(m_shooterRequest.withVelocity(desiredShooterRPS));
-        SmartDashboard.putNumber("hood angle", getHoodRotations());
-        SmartDashboard.putNumber("main shoot speed", getShootSpeed());
-        SmartDashboard.putNumber("follow shoot speed", getFollowShootSpeed());
-        SmartDashboard.putNumber("shooter difference", getShootSpeed()-getFollowShootSpeed());
     }
 
     public void setRoller(double speed) {
