@@ -3,11 +3,11 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.ShooterSubsystem;
 
 public class AutoShootCmd extends Command{
    
-    private Shooter shooter;
+    private ShooterSubsystem shooter;
     private IntakeSubsystem intake;
 
     private double shootSpeed;
@@ -15,7 +15,7 @@ public class AutoShootCmd extends Command{
     private double distance;
     private double kPVelDamp = 0.175;
     
-    public AutoShootCmd(Shooter shooter, IntakeSubsystem intake) {
+    public AutoShootCmd(ShooterSubsystem shooter, IntakeSubsystem intake) {
         this.shooter = shooter;
         this.intake = intake;
 

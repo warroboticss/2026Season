@@ -4,13 +4,13 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.Limelight;
-import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.LimelightSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 
 public class ShootCmd extends Command{
    
-    private Shooter shooter;
-    private Limelight vision;
+    private ShooterSubsystem shooter;
+    private LimelightSubsystem vision;
     private IntakeSubsystem intake;
 
     private double shootSpeed;
@@ -19,7 +19,7 @@ public class ShootCmd extends Command{
     private Pose2d target;
     private double kPVelDamp = 0.175;
     
-    public ShootCmd(Shooter shooter, Limelight vision, IntakeSubsystem intake) {
+    public ShootCmd(ShooterSubsystem shooter, LimelightSubsystem vision, IntakeSubsystem intake) {
         this.shooter = shooter;
         this.vision = vision;
         this.intake = intake;

@@ -1,12 +1,12 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.Climber;
+import frc.robot.subsystems.ClimberSubsystem;
 
 public class HomeClimberCmd extends Command{
-    private final Climber climber;
+    private final ClimberSubsystem climber;
 
-    public HomeClimberCmd(Climber climber){
+    public HomeClimberCmd(ClimberSubsystem climber){
         this.climber = climber;
         addRequirements(climber);
     }

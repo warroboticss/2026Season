@@ -22,7 +22,7 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.generated.TunerConstants;
 
-import frc.robot.commands.DeployIntake;
+import frc.robot.commands.DeployIntakeCmd;
 import frc.robot.commands.HomeClimberCmd;
 import frc.robot.commands.LowerHoodCmd;
 import frc.robot.commands.ReverseHopperCmd;
@@ -31,14 +31,14 @@ import frc.robot.commands.ShootCmd;
 import frc.robot.Util.MatchData;
 import frc.robot.commands.AutoShootCmd;
 
-import frc.robot.subsystems.Climber;
+import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ElasticSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.LightSubsystem;
-import frc.robot.subsystems.Limelight;
-import frc.robot.subsystems.MatchStateManager;
-import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.LimelightSubsystem;
+import frc.robot.subsystems.MatchStateManagerSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 
 
 public class RobotContainer {
@@ -72,16 +72,16 @@ public class RobotContainer {
     // subsystems
     public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final MatchData matchData = new MatchData();
-    private final Shooter shooter = new Shooter();
+    private final ShooterSubsystem shooter = new ShooterSubsystem();
     private final IntakeSubsystem intake = new IntakeSubsystem();
-    private final Climber climber = new Climber();
-    public final Limelight vision = new Limelight(drivetrain, matchData);
-    public final MatchStateManager stateManager = new MatchStateManager(matchData, controller);
+    private final ClimberSubsystem climber = new ClimberSubsystem();
+    public final LimelightSubsystem vision = new LimelightSubsystem(drivetrain, matchData);
+    public final MatchStateManagerSubsystem stateManager = new MatchStateManagerSubsystem(matchData, controller);
     private final LightSubsystem light = new LightSubsystem(stateManager);
     private final ElasticSubsystem elastic = new ElasticSubsystem(stateManager, vision);
 
     // commands
-    private final DeployIntake deployIntake = new DeployIntake(intake);
+    private final DeployIntakeCmd deployIntake = new DeployIntakeCmd(intake);
     private final InstantCommand intakeUp = new InstantCommand(() -> intake.setIntakePosition(MatchConfig.INTAKE_UP_POSITION));
     private final ReverseHopperCmd reverseHopperCmd = new ReverseHopperCmd(shooter, intake);
     private final InstantCommand sprintCmd = new InstantCommand(() -> setDriveScale(MatchConfig.DRIVE_SPRINT_SCALE));
@@ -114,10 +114,10 @@ public class RobotContainer {
     }    
     
     private void configureBindings() {
+        x.onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         y.whileTrue(intakeUp);
         a.whileTrue(climber.setClimber(Constants.CLIMB_ROT).alongWith(slowCmd));
         a.onFalse(defaultScaleCmd);
-        x.onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         b.onTrue(seedVision);
 
         leftTrigger.whileTrue(deployIntake);

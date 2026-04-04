@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
+
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
@@ -11,26 +12,21 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
-public class Climber extends SubsystemBase {
+public class ClimberSubsystem extends SubsystemBase {
     private final TalonFX climber = new TalonFX(19);
     private final MotionMagicVoltage angleRequest = new MotionMagicVoltage(0.0);
     private final DigitalInput home = new DigitalInput(0);
-    public Boolean is_home = false;
+    private final Trigger isHome = new Trigger(home::get);
 
-    public Climber() {
+    public ClimberSubsystem() {
        configMotor(climber.getConfigurator());     
        climber.optimizeBusUtilization();
     }
 
-
-    // methods
-    public boolean getHome() {
-        return home.get();
-    }
-
     public void home() {
-        if (!home.get()) {
+        if (!isHome.getAsBoolean()) {
             climber.set(-0.3);
         } else {
             climber.set(0);

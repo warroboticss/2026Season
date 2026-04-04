@@ -17,10 +17,10 @@ public class ElasticSubsystem extends SubsystemBase{
     private final BooleanPublisher activePublisher;
     private final DoublePublisher matchTimePublisher;
 
-    private final MatchStateManager matchState;
-    private final Limelight vision;
+    private final MatchStateManagerSubsystem matchState;
+    private final LimelightSubsystem vision;
 
-    public ElasticSubsystem(MatchStateManager matchState, Limelight vision) {
+    public ElasticSubsystem(MatchStateManagerSubsystem matchState, LimelightSubsystem vision) {
         this.matchState = matchState;
         this.vision = vision;
 

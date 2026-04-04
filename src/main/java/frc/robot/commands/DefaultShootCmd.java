@@ -1,13 +1,13 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.Constants;
 
 public class DefaultShootCmd extends Command {
-    private final Shooter shooter;
+    private final ShooterSubsystem shooter;
     
-    public DefaultShootCmd(Shooter shooter) {
+    public DefaultShootCmd(ShooterSubsystem shooter) {
         this.shooter = shooter;
         addRequirements(shooter);
     }

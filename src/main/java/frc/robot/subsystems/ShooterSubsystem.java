@@ -14,7 +14,7 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class Shooter extends SubsystemBase{
+public class ShooterSubsystem extends SubsystemBase{
     private final TalonFX rollersMain = new TalonFX(16);
     private final TalonFX rollerFollower = new TalonFX(15);
     private final TalonFX shooterMain = new TalonFX(21);
@@ -26,7 +26,7 @@ public class Shooter extends SubsystemBase{
 
     public boolean shooting;
 
-    public Shooter(){
+    public ShooterSubsystem(){
         configShooterMotors(shooterMain.getConfigurator());
         configShooterMotors(shooterFollower.getConfigurator());
         //shooterFollower.setControl(new Follower(21, MotorAlignmentValue.Opposed));

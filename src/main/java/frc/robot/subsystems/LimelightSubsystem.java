@@ -13,7 +13,7 @@ import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.Util.MatchData;
 
-public class Limelight extends SubsystemBase {
+public class LimelightSubsystem extends SubsystemBase {
     private final CommandSwerveDrivetrain drivetrain;
     private final MatchData matchData;
     private SwerveDriveState driveState;
@@ -26,7 +26,7 @@ public class Limelight extends SubsystemBase {
     private int distanceError = 0;
     private double kPCorr = 1;
 
-    public Limelight(CommandSwerveDrivetrain drivetrain, MatchData matchData) {
+    public LimelightSubsystem(CommandSwerveDrivetrain drivetrain, MatchData matchData) {
         this.matchData = matchData;
         this.drivetrain = drivetrain;
         SmartDashboard.putNumber("Field Error", fieldError);

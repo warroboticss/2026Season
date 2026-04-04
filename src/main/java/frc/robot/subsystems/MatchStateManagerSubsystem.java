@@ -9,13 +9,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Util.MatchData;
 
-public class MatchStateManager extends SubsystemBase {
+public class MatchStateManagerSubsystem extends SubsystemBase {
     private CommandXboxController controller;
     private boolean active; // is our hub active?
     private MatchData matchData;
     private double startTime = 0.0;
 
-    public MatchStateManager(MatchData matchData, CommandXboxController controller) {
+    public MatchStateManagerSubsystem(MatchData matchData, CommandXboxController controller) {
         this.matchData = matchData;
         this.controller = controller;
         SmartDashboard.putNumber("Shift Time Remaining", 0.0);
@@ -52,11 +52,17 @@ public class MatchStateManager extends SubsystemBase {
                 }
                 double shiftTime = Math.round((10 - (Timer.getFPGATimestamp() - startTime)) * 10.0) / 10.0;
                 SmartDashboard.putNumber("Shift Time Remaining", shiftTime);
-            } else if (timeRemaining <= 30) {
+            } else if (timeRemaining <= 30 && timeRemaining > 20) { // Endgame
                 if (timeRemaining == 30) {
                     startTime = Timer.getFPGATimestamp();
                 }
                 double shiftTime = Math.round((30 - (Timer.getFPGATimestamp() - startTime)) * 10.0) / 10.0;
+                SmartDashboard.putNumber("Shift Time Remaining", shiftTime);
+            } else if (timeRemaining <= 20) { // Auto & Endgame
+                if (timeRemaining == 20) {
+                    startTime = Timer.getFPGATimestamp();
+                }
+                double shiftTime = Math.round((20 - (Timer.getFPGATimestamp() - startTime)) * 10.0) / 10.0;
                 SmartDashboard.putNumber("Shift Time Remaining", shiftTime);
             }
 

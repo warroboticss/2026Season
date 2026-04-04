@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 
 public class LightSubsystem extends SubsystemBase {
-    private final MatchStateManager matchState;
+    private final MatchStateManagerSubsystem matchState;
 
     private static final int kPort = 2;
     private static final int kLength = 22;
@@ -16,7 +16,7 @@ public class LightSubsystem extends SubsystemBase {
     private final AddressableLED m_led;
     private final AddressableLEDBuffer m_buffer;
 
-    public LightSubsystem(MatchStateManager matchState) {
+    public LightSubsystem(MatchStateManagerSubsystem matchState) {
         this.matchState = matchState;
         m_led = new AddressableLED(kPort);
         m_buffer = new AddressableLEDBuffer(kLength);
