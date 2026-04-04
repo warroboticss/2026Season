@@ -7,6 +7,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
@@ -33,12 +34,12 @@ public class LimelightSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Limelight Error", distanceError);
     }
 
-    @Override
-    public void periodic() {
-        if (enable) {
+    public Command LimelightDefaultCmd() {
+        return this.run(() -> {
+            if (enable) {
             LimelightHelpers.SetRobotOrientation(ll, drivetrain.getState().Pose.getRotation().getDegrees(),0,0,0,0,0);
             if (!seeded) {
-                Pose2d botPose = LimelightHelpers.getBotPose2d_wpiBlue("limelight-shooter");
+                Pose2d botPose = LimelightHelpers.getBotPose2d_wpiBlue(ll);
                 if (botPose != null && Constants.FIELD_AREA.isPoseWithinArea(botPose)) {
                     drivetrain.resetPose(botPose);
                     seeded = true;
@@ -67,6 +68,7 @@ public class LimelightSubsystem extends SubsystemBase {
             }
         }
         driveState = drivetrain.getState();
+        });
     }
 
     public void setSeeded(Boolean state) {

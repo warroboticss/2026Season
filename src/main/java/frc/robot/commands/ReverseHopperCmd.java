@@ -25,4 +25,9 @@ public class ReverseHopperCmd extends Command{
     public boolean isFinished() {
         return false;
     }
+
+    @Override
+    public void end(boolean interrupted){
+        intake.runIntake(0.0);
+    }
 }

@@ -88,7 +88,7 @@ public class RobotContainer {
     private final InstantCommand defaultScaleCmd = new InstantCommand(() -> { if (!a.getAsBoolean()){setDriveScale(MatchConfig.DRIVE_DEFAULT_SCALE);}});
     private final InstantCommand slowCmd = new InstantCommand(() -> setDriveScale(MatchConfig.DRIVE_SLOW_SCALE));
     private final InstantCommand seedVision = new InstantCommand(() -> vision.setSeeded(false));
-    private final ParallelCommandGroup shootAndAlign = new ParallelCommandGroup(new ShootCmd(shooter, vision, intake), drivetrain.applyRequest(() -> {double error = vision.getHeadingError(vision.getTarget());return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.2)
+    private final ParallelCommandGroup shootAndAlign = new ParallelCommandGroup(new ShootCmd(shooter, vision, intake), drivetrain.applyRequest(() -> {double error = vision.getHeadingError(vision.getOffsetTarget(vision.getTarget()));return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.2)
                                     .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.2)
                                     .withRotationalRate(Math.abs(9 * error) > 3.5 ? 3.5 * Math.signum(error) : 12 * error);}));
 
@@ -99,7 +99,7 @@ public class RobotContainer {
 
     public RobotContainer() {
         NamedCommands.registerCommand("deployIntake", deployIntake);
-        NamedCommands.registerCommand("shoot", new AutoShootCmd(shooter, intake).withTimeout(3.5));
+        NamedCommands.registerCommand("shoot", new AutoShootCmd(shooter, intake).withTimeout(5));
         NamedCommands.registerCommand("lowerHood", new LowerHoodCmd(shooter));
 
         autoChooser = AutoBuilder.buildAutoChooser(Constants.AUTOS[0]);
@@ -110,6 +110,7 @@ public class RobotContainer {
         light.setDefaultCommand(light.defaultLightCmd());
         elastic.setDefaultCommand(elastic.defaultElasticCmd());
         stateManager.setDefaultCommand(stateManager.defaultStateCmd());
+        vision.setDefaultCommand(vision.LimelightDefaultCmd());
         configureBindings();
     }    
     
@@ -122,7 +123,7 @@ public class RobotContainer {
 
         leftTrigger.whileTrue(deployIntake);
         rightTrigger.whileTrue(shootAndAlign);
-        rightTrigger.onTrue(seedVision);
+        //rightTrigger.onTrue(seedVision);
 
         leftBumper.whileTrue(reverseHopperCmd);
         rightBumper.onTrue(sprintCmd);

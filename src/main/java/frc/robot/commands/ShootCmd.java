@@ -28,7 +28,7 @@ public class ShootCmd extends Command{
     }
     
     public void execute() {
-        target = vision.getTarget();
+        target = vision.getOffsetTarget(vision.getTarget());
         distance = vision.getAbsoluteDistanceFromTarget(target);
         shootSpeed = -1 * 6.39816 * distance - 33.10835 + 1;
         hoodRot = 0.641169 + 1.12764 * Math.log(distance);

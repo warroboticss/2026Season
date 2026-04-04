@@ -56,6 +56,8 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
+    m_robotContainer.matchData.ALLIANCE = DriverStation.getAlliance().get().toString();
+
     m_robotContainer.vision.setSeeded(false);
     // checks if we won auto
     if (m_robotContainer.matchData.ALLIANCE.toUpperCase().contains(DriverStation.getGameSpecificMessage())) {
