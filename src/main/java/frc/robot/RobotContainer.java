@@ -63,7 +63,7 @@ public class RobotContainer {
     private final CommandXboxController operatorController = new CommandXboxController(1);
     private final Trigger a = controller.a();
     private final Trigger b = controller.b();
-    private final Trigger operatorB = controller.b();
+    private final Trigger operatorB = operatorController.b();
     private final Trigger y = controller.y();
     private final Trigger x = controller.x();
     private final Trigger rightTrigger = controller.rightTrigger();

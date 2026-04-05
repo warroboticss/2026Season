@@ -3,7 +3,6 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.pathplanner.lib.commands.FollowPathCommand;
-import com.pathplanner.lib.commands.PathfindingCommand;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
@@ -20,9 +19,7 @@ public class Robot extends TimedRobot {
   public Robot() {
     m_robotContainer = new RobotContainer();
     RobotController.setBrownoutVoltage(Volts.of(6.0));
-    FollowPathCommand.warmupCommand();
-    PathfindingCommand.warmupCommand();
-    m_robotContainer.matchData.ALLIANCE = DriverStation.getAlliance().get().toString();
+    CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
   }
 
   @Override
@@ -41,6 +38,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
+    m_robotContainer.matchData.ALLIANCE = DriverStation.getAlliance().get().toString();
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
     if (m_autonomousCommand != null) {
@@ -57,7 +55,6 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
     m_robotContainer.matchData.ALLIANCE = DriverStation.getAlliance().get().toString();
-
     m_robotContainer.vision.setSeeded(false);
     // checks if we won auto
     if (m_robotContainer.matchData.ALLIANCE.toUpperCase().contains(DriverStation.getGameSpecificMessage())) {

@@ -51,7 +51,7 @@ public class ShootCmd extends Command{
         shooter.setShooter(shootSpeed);
         intake.oscillateRoller();
 
-        if(Math.abs(shooter.getHoodRotations() - hoodRot) < 0.2 && Math.abs(shooter.getShootSpeed() - shootSpeed) < 2 && vision.getHeadingError(target) <= 0.175){
+        if(Math.abs(shooter.getHoodRotations() - hoodRot) < 0.2 && Math.abs(shooter.getShootSpeed() - shootSpeed) < 2 && Math.abs(vision.getHeadingError(target)) <= 0.175){
             shooter.setRoller(-0.7);
             shooter.setMouth(0.9);
         }
