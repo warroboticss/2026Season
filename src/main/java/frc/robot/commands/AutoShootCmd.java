@@ -2,6 +2,7 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
+import frc.robot.MatchConfig;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 
@@ -23,7 +24,7 @@ public class AutoShootCmd extends Command{
     }
     
     public void execute() {
-        distance = 3.3;
+        distance = MatchConfig.AUTO_SHOT_DISTANCE;
         shootSpeed = -1 * 6.39816 * distance - 33.10835;
         hoodRot = 0.641169 + 1.12764 * Math.log(distance);
 

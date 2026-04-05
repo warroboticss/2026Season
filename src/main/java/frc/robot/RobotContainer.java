@@ -60,8 +60,10 @@ public class RobotContainer {
 
     // controller
     private final CommandXboxController controller = new CommandXboxController(0);
+    private final CommandXboxController operatorController = new CommandXboxController(1);
     private final Trigger a = controller.a();
     private final Trigger b = controller.b();
+    private final Trigger operatorB = controller.b();
     private final Trigger y = controller.y();
     private final Trigger x = controller.x();
     private final Trigger rightTrigger = controller.rightTrigger();
@@ -88,8 +90,8 @@ public class RobotContainer {
     private final InstantCommand defaultScaleCmd = new InstantCommand(() -> { if (!a.getAsBoolean()){setDriveScale(MatchConfig.DRIVE_DEFAULT_SCALE);}});
     private final InstantCommand slowCmd = new InstantCommand(() -> setDriveScale(MatchConfig.DRIVE_SLOW_SCALE));
     private final InstantCommand seedVision = new InstantCommand(() -> vision.setSeeded(false));
-    private final ParallelCommandGroup shootAndAlign = new ParallelCommandGroup(new ShootCmd(shooter, vision, intake), drivetrain.applyRequest(() -> {double error = vision.getHeadingError(vision.getOffsetTarget(vision.getTarget()));return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.2)
-                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.2)
+    private final ParallelCommandGroup shootAndAlign = new ParallelCommandGroup(new ShootCmd(shooter, vision, intake), drivetrain.applyRequest(() -> {double error = vision.getHeadingError(vision.getOffsetTarget(vision.getTarget()));return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * MatchConfig.DRIVE_SHOOTONTHEMOVE_SCALE)
+                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * MatchConfig.DRIVE_SHOOTONTHEMOVE_SCALE)
                                     .withRotationalRate(Math.abs(9 * error) > 3.5 ? 3.5 * Math.signum(error) : 12 * error);}));
 
     //helper method
@@ -99,7 +101,7 @@ public class RobotContainer {
 
     public RobotContainer() {
         NamedCommands.registerCommand("deployIntake", deployIntake);
-        NamedCommands.registerCommand("shoot", new AutoShootCmd(shooter, intake).withTimeout(5));
+        NamedCommands.registerCommand("shoot", new AutoShootCmd(shooter, intake).withTimeout(MatchConfig.SHOOTER_TIMEOUT));
         NamedCommands.registerCommand("lowerHood", new LowerHoodCmd(shooter));
 
         autoChooser = AutoBuilder.buildAutoChooser(Constants.AUTOS[0]);
@@ -120,10 +122,10 @@ public class RobotContainer {
         a.whileTrue(climber.setClimber(Constants.CLIMB_ROT).alongWith(slowCmd));
         a.onFalse(defaultScaleCmd);
         b.onTrue(seedVision);
+        operatorB.onTrue(seedVision);
 
         leftTrigger.whileTrue(deployIntake);
         rightTrigger.whileTrue(shootAndAlign);
-        //rightTrigger.onTrue(seedVision);
 
         leftBumper.whileTrue(reverseHopperCmd);
         rightBumper.onTrue(sprintCmd);

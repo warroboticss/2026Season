@@ -7,31 +7,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Auto Test P1"
+            "pathName": "Trench To Mid To Bump RIGHT BLUE (MIDLINE)"
           }
         },
         {
           "type": "named",
           "data": {
             "name": "shoot"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "lowerHood"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Auto Test P2"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "shoot"
+            "pathName": "Bump To Intake RIGHT BLUE"
           }
         }
       ]

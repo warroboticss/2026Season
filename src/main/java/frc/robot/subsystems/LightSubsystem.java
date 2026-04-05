@@ -6,6 +6,7 @@ import frc.robot.Constants;
 import frc.robot.MatchConfig;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
+import edu.wpi.first.wpilibj.DriverStation;
 
 public class LightSubsystem extends SubsystemBase {
     private final MatchStateManagerSubsystem matchState;
@@ -33,7 +34,9 @@ public class LightSubsystem extends SubsystemBase {
 
     public Command defaultLightCmd() {
         return this.run(() -> {
-            if (MatchConfig.USE_MATCH_STATE) {
+            if (DriverStation.isAutonomous()) {
+                Constants.RAINBOW_SCROLL.applyTo(m_buffer);
+            } else if (MatchConfig.USE_MATCH_STATE) {
                 if (matchState.getActive()) {
                     Constants.SOLID_GREEN.applyTo(m_buffer);
                 } else {

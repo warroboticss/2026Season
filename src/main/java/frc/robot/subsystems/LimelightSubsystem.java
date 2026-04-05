@@ -25,7 +25,6 @@ public class LimelightSubsystem extends SubsystemBase {
 
     private int fieldError = 0;
     private int distanceError = 0;
-    private double kPCorr = 1;
 
     public LimelightSubsystem(CommandSwerveDrivetrain drivetrain, MatchData matchData) {
         this.matchData = matchData;
@@ -95,8 +94,8 @@ public class LimelightSubsystem extends SubsystemBase {
         double vx_fieldRelative = vx_robotRelative * Math.cos(robotRotation) - Math.sin(robotRotation) * vy_robotRelative;
         double vy_fieldRelative = vx_robotRelative * Math.sin(robotRotation) + Math.cos(robotRotation) * vy_robotRelative;
 
-        double driftX = (-1 * vx_fieldRelative * flightTime) * kPCorr;
-        double driftY = (-1 * vy_fieldRelative * flightTime) * kPCorr;
+        double driftX = (-1 * vx_fieldRelative * flightTime);
+        double driftY = (-1 * vy_fieldRelative * flightTime);
         // returns offset target
         return new Pose2d(driftX + target.getX(), driftY + target.getY(), new Rotation2d(0)); 
     }

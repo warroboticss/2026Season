@@ -3,7 +3,11 @@ package frc.robot;
 import edu.wpi.first.wpilibj.LEDPattern;
 
 public class MatchConfig {
-    // Last Updated: 3/27/2026
+    // Last Updated: 4/4/2026
+
+    // AUTONOMOUS TUNING
+    public static final double SHOOTER_TIMEOUT = 5.0;
+    public static final double AUTO_SHOT_DISTANCE = 3.3; // YOU NEED TO FIND A NEW VALUE FOR THIS (meters)
 
     // INTAKE UP HEIGHT
     public static final double INTAKE_UP_POSITION = 0.0;
@@ -30,6 +34,7 @@ public class MatchConfig {
     public static final boolean USE_MATCH_STATE = true;
 
     // DRIVER CONTROL SELECTION
+    public static final double DRIVE_SHOOTONTHEMOVE_SCALE = 0.2;
     public static final double DRIVE_DEFAULT_SCALE = 0.35;
     public static final double DRIVE_SPRINT_SCALE = 0.7;
     public static final double DRIVE_SLOW_SCALE = 0.1;

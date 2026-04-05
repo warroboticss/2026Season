@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Trench To Mid To Bump LEFT BLUE (MIDLINE)"
+            "pathName": "Trench To Mid To Bump RIGHT BLUE"
           }
         },
         {
@@ -19,7 +19,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Bump To Intake LEFT BLUE"
+            "pathName": "Bump To Intake RIGHT BLUE"
           }
         }
       ]

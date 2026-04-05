@@ -15,6 +15,7 @@ public class ElasticSubsystem extends SubsystemBase{
     private final DoublePublisher velocityPublisher;
     private final DoublePublisher voltagePublisher;
     private final BooleanPublisher activePublisher;
+    private final DoublePublisher distancePublisher;
     private final DoublePublisher matchTimePublisher;
 
     private final MatchStateManagerSubsystem matchState;
@@ -28,6 +29,7 @@ public class ElasticSubsystem extends SubsystemBase{
         velocityPublisher = elasticTable.getDoubleTopic("Velocity").publish();
         voltagePublisher = elasticTable.getDoubleTopic("Voltage").publish();
         activePublisher = elasticTable.getBooleanTopic("State").publish();
+        distancePublisher = elasticTable.getDoubleTopic("Distance").publish();
         matchTimePublisher = elasticTable.getDoubleTopic("Match Time").publish();
     }
 
@@ -37,6 +39,8 @@ public class ElasticSubsystem extends SubsystemBase{
             velocityPublisher.set(vision.getBotSpeed());
             voltagePublisher.set(RobotController.getBatteryVoltage());
             matchTimePublisher.set(Math.round(DriverStation.getMatchTime() * 10) / 10);
+            distancePublisher.set(vision.getAbsoluteDistanceFromTarget(vision.getTarget()));
+
             if (MatchConfig.USE_MATCH_STATE) {
                 activePublisher.set(matchState.getActive());
             }
