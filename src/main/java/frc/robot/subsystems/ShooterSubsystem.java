@@ -24,8 +24,6 @@ public class ShooterSubsystem extends SubsystemBase{
     private final MotionMagicVoltage m_angleRequest = new MotionMagicVoltage(0.0);
     private final MotionMagicVelocityVoltage m_shooterRequest = new MotionMagicVelocityVoltage(0.0);
 
-    public boolean shooting;
-
     public ShooterSubsystem(){
         configShooterMotors(shooterMain.getConfigurator());
         configShooterMotors(shooterFollower.getConfigurator());
@@ -45,7 +43,6 @@ public class ShooterSubsystem extends SubsystemBase{
         hoodAngler.optimizeBusUtilization();
 
         hoodAngler.setPosition(0);
-
     }
 
     public void setRoller(double speed) {
@@ -73,7 +70,6 @@ public class ShooterSubsystem extends SubsystemBase{
         if(Math.abs(angle - getHoodRotations()) > 0.1){
             hoodAngler.setControl(m_angleRequest.withPosition(angle));
         }
-        //System.out.println(angle);
     }
 
     public double getHoodRotations(){

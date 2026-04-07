@@ -15,7 +15,7 @@ public class DefaultShootCmd extends Command {
     public void execute() {
         shooter.setAngle(0.0);
         shooter.setShooter(Constants.SHOOTER_DEFAULT_RPS);
-        shooter.setRoller(-0.2);
+        shooter.setRoller(0.0);
         shooter.setMouth(0);
     }
 

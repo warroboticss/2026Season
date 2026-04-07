@@ -33,13 +33,13 @@ public class LimelightSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Limelight Error", distanceError);
     }
 
-    public Command LimelightDefaultCmd() {
+    public Command defaultLLCmd() {
         return this.run(() -> {
             if (enable) {
             LimelightHelpers.SetRobotOrientation(ll, drivetrain.getState().Pose.getRotation().getDegrees(),0,0,0,0,0);
             if (!seeded) {
                 Pose2d botPose = LimelightHelpers.getBotPose2d_wpiBlue(ll);
-                if (botPose != null && Constants.FIELD_AREA.isPoseWithinArea(botPose)) {
+                if (LimelightHelpers.getTV(ll) && Constants.FIELD_AREA.isPoseWithinArea(botPose)) {
                     drivetrain.resetPose(botPose);
                     seeded = true;
                 }

@@ -14,7 +14,6 @@ import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -62,7 +61,6 @@ public class RobotContainer {
     private final CommandXboxController controller = new CommandXboxController(0);
     private final CommandXboxController operatorController = new CommandXboxController(1);
     private final Trigger a = controller.a();
-    private final Trigger b = controller.b();
     private final Trigger operatorB = operatorController.b();
     private final Trigger y = controller.y();
     private final Trigger x = controller.x();
@@ -104,7 +102,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("shoot", new AutoShootCmd(shooter, intake).withTimeout(MatchConfig.SHOOTER_TIMEOUT));
         NamedCommands.registerCommand("lowerHood", new LowerHoodCmd(shooter));
 
-        autoChooser = AutoBuilder.buildAutoChooser(Constants.AUTOS[0]);
+        autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Select Auto", autoChooser);
 
         shooter.setDefaultCommand(new DefaultShootCmd(shooter));
@@ -112,20 +110,23 @@ public class RobotContainer {
         light.setDefaultCommand(light.defaultLightCmd());
         elastic.setDefaultCommand(elastic.defaultElasticCmd());
         stateManager.setDefaultCommand(stateManager.defaultStateCmd());
-        vision.setDefaultCommand(vision.LimelightDefaultCmd());
+        vision.setDefaultCommand(vision.defaultLLCmd());
         configureBindings();
     }    
     
     private void configureBindings() {
+        // operator controls
+        operatorB.onTrue(seedVision);
+
+        // driver controls
         x.onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         y.whileTrue(intakeUp);
         a.whileTrue(climber.setClimber(Constants.CLIMB_ROT).alongWith(slowCmd));
         a.onFalse(defaultScaleCmd);
-        b.onTrue(seedVision);
-        operatorB.onTrue(seedVision);
 
         leftTrigger.whileTrue(deployIntake);
         rightTrigger.whileTrue(shootAndAlign);
+        rightTrigger.onTrue(seedVision);
 
         leftBumper.whileTrue(reverseHopperCmd);
         rightBumper.onTrue(sprintCmd);
@@ -148,7 +149,6 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        //return AutoBuilder.buildAuto(SmartDashboard.getData("Select Auto").toString()); 
-        return Commands.none();
+        return autoChooser.getSelected(); 
     }
 }

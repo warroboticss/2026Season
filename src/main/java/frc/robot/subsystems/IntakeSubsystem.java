@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.MatchConfig;
 
+import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
@@ -18,6 +19,7 @@ public class IntakeSubsystem extends SubsystemBase {
 	private final TalonFX rightMotor = new TalonFX(14);
   private final TalonFX primaryIntakeMotor = new TalonFX(17);
   private final MotionMagicVoltage m_angleRequest = new MotionMagicVoltage(0.0);
+  private final DutyCycleOut m_focDutyCycleOut = new DutyCycleOut(0).withEnableFOC(true);
   private boolean overrideOscilation = false;
 	
   public IntakeSubsystem() {
@@ -33,7 +35,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
     // methods
 	public void runIntake(double speed){
-	  primaryIntakeMotor.set(speed);
+	  primaryIntakeMotor.setControl(m_focDutyCycleOut.withOutput(speed));
   }
 
   public void oscillateRoller(){
@@ -126,9 +128,9 @@ public class IntakeSubsystem extends SubsystemBase {
 
     // Set current limits
     var current = newConfig.CurrentLimits;
-    current.StatorCurrentLimit = 60;
+    current.StatorCurrentLimit = 80;
     current.StatorCurrentLimitEnable = true;
-    current.SupplyCurrentLimit = 30;
+    current.SupplyCurrentLimit = 40;
     current.SupplyCurrentLimitEnable = true;
 
     // Apply configuration
