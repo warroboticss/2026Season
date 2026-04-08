@@ -14,6 +14,7 @@ import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -54,14 +55,12 @@ public class RobotContainer {
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
     // vars
-    private double driveScale = MatchConfig.DRIVE_DEFAULT_SCALE;
+    private double driveScale = 0.35;
     private SendableChooser<Command> autoChooser;
 
     // controller
     private final CommandXboxController controller = new CommandXboxController(0);
-    private final CommandXboxController operatorController = new CommandXboxController(1);
     private final Trigger a = controller.a();
-    private final Trigger operatorB = operatorController.b();
     private final Trigger y = controller.y();
     private final Trigger x = controller.x();
     private final Trigger rightTrigger = controller.rightTrigger();
@@ -82,15 +81,17 @@ public class RobotContainer {
 
     // commands
     private final DeployIntakeCmd deployIntake = new DeployIntakeCmd(intake);
-    private final InstantCommand intakeUp = new InstantCommand(() -> intake.setIntakePosition(MatchConfig.INTAKE_UP_POSITION));
+    private final InstantCommand intakeUp = new InstantCommand(() -> intake.setIntakePosition(0.0));
     private final ReverseHopperCmd reverseHopperCmd = new ReverseHopperCmd(shooter, intake);
-    private final InstantCommand sprintCmd = new InstantCommand(() -> setDriveScale(MatchConfig.DRIVE_SPRINT_SCALE));
-    private final InstantCommand defaultScaleCmd = new InstantCommand(() -> { if (!a.getAsBoolean()){setDriveScale(MatchConfig.DRIVE_DEFAULT_SCALE);}});
-    private final InstantCommand slowCmd = new InstantCommand(() -> setDriveScale(MatchConfig.DRIVE_SLOW_SCALE));
+    private final InstantCommand sprintCmd = new InstantCommand(() -> setDriveScale(0.7));
+    private final InstantCommand defaultScaleCmd = new InstantCommand(() -> { if (!a.getAsBoolean()){setDriveScale(0.35);}});
+    private final InstantCommand slowCmd = new InstantCommand(() -> setDriveScale(0.2));
     private final InstantCommand seedVision = new InstantCommand(() -> vision.setSeeded(false));
-    private final ParallelCommandGroup shootAndAlign = new ParallelCommandGroup(new ShootCmd(shooter, vision, intake), drivetrain.applyRequest(() -> {double error = vision.getHeadingError(vision.getOffsetTarget(vision.getTarget()));return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * MatchConfig.DRIVE_SHOOTONTHEMOVE_SCALE)
-                                    .withVelocityY((-controller.getLeftX() * MaxSpeed) * MatchConfig.DRIVE_SHOOTONTHEMOVE_SCALE)
-                                    .withRotationalRate(Math.abs(9 * error) > 3.5 ? 3.5 * Math.signum(error) : 12 * error);}));
+    private final ParallelCommandGroup shootAndAlign = new ParallelCommandGroup(new ShootCmd(shooter, vision, intake), drivetrain.applyRequest(() -> {
+                                    double error = vision.getHeadingError(vision.getOffsetTarget(vision.getTarget()));
+                                    return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.35)
+                                        .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.35)
+                                        .withRotationalRate(Math.abs(9 * error) > 3.5 ? 3.5 * Math.signum(error) : 12 * error);}));
 
     //helper method
     public void setDriveScale(double scale) {
@@ -99,10 +100,11 @@ public class RobotContainer {
 
     public RobotContainer() {
         NamedCommands.registerCommand("deployIntake", deployIntake);
-        NamedCommands.registerCommand("shoot", new AutoShootCmd(shooter, intake).withTimeout(MatchConfig.SHOOTER_TIMEOUT));
+        NamedCommands.registerCommand("shoot", new AutoShootCmd(shooter, intake).withTimeout(5.0));
         NamedCommands.registerCommand("lowerHood", new LowerHoodCmd(shooter));
 
         autoChooser = AutoBuilder.buildAutoChooser();
+        SmartDashboard.getEntry("Select Auto").unpublish();
         SmartDashboard.putData("Select Auto", autoChooser);
 
         shooter.setDefaultCommand(new DefaultShootCmd(shooter));
@@ -115,9 +117,6 @@ public class RobotContainer {
     }    
     
     private void configureBindings() {
-        // operator controls
-        operatorB.onTrue(seedVision);
-
         // driver controls
         x.onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         y.whileTrue(intakeUp);
@@ -149,6 +148,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return autoChooser.getSelected(); 
+        return AutoBuilder.buildAuto("Right Blue Auto (MIDLINE)"); 
+        //return Commands.none();
     }
 }

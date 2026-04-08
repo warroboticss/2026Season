@@ -105,12 +105,12 @@
     },
     {
       "fieldPosition": {
-        "x": 0.0,
-        "y": 0.0
+        "x": -10.0,
+        "y": -15.0
       },
       "rotationOffset": 0.0,
       "minWaypointRelativePos": 2.9925725860904286,
-      "maxWaypointRelativePos": 3.3274814314652237,
+      "maxWaypointRelativePos": 3.5111411208642673,
       "name": "Bump Traversal"
     },
     {
@@ -129,7 +129,12 @@
       "name": "deployIntake",
       "waypointRelativePos": 0.2700877785280077,
       "endWaypointRelativePos": 2.960162052667023,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "deployIntake"
+        }
+      }
     }
   ],
   "globalConstraints": {

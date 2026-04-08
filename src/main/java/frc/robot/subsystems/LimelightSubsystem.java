@@ -40,7 +40,7 @@ public class LimelightSubsystem extends SubsystemBase {
             if (!seeded) {
                 Pose2d botPose = LimelightHelpers.getBotPose2d_wpiBlue(ll);
                 if (LimelightHelpers.getTV(ll) && Constants.FIELD_AREA.isPoseWithinArea(botPose)) {
-                    drivetrain.resetPose(botPose);
+                    drivetrain.resetPose(botPose); // use reset translation?
                     seeded = true;
                 }
             }                

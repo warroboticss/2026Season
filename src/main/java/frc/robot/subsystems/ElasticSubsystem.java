@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.MatchConfig;
 
 public class ElasticSubsystem extends SubsystemBase{
     private final NetworkTable elasticTable;
@@ -40,10 +39,7 @@ public class ElasticSubsystem extends SubsystemBase{
             voltagePublisher.set(RobotController.getBatteryVoltage());
             matchTimePublisher.set(Math.round(DriverStation.getMatchTime() * 10) / 10);
             distancePublisher.set(vision.getAbsoluteDistanceFromTarget(vision.getTarget()));
-
-            if (MatchConfig.USE_MATCH_STATE) {
-                activePublisher.set(matchState.getActive());
-            }
+            activePublisher.set(matchState.getActive());
         });
     }
 }

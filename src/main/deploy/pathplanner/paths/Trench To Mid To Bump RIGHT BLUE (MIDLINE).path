@@ -33,43 +33,43 @@
     {
       "anchor": {
         "x": 8.25706134094151,
-        "y": 2.736
+        "y": 3.3039657631954356
       },
       "prevControl": {
-        "x": 8.231187407244155,
-        "y": 2.102005568003567
+        "x": 8.25706134094151,
+        "y": 2.6694435805670778
       },
       "nextControl": {
-        "x": 8.280809209750755,
-        "y": 3.3178990174803773
+        "x": 8.25706134094151,
+        "y": 3.5627389443651927
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 6.510342368045648,
+        "x": 6.264507845934379,
         "y": 2.736
       },
       "prevControl": {
-        "x": 8.002932788006412,
-        "y": 3.000312251839903
+        "x": 6.782054208273894,
+        "y": 2.7748159771754652
       },
       "nextControl": {
-        "x": 4.026119647343659,
-        "y": 2.296086616797492
+        "x": 5.412557108824685,
+        "y": 2.6721036947167707
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.4476034236804565,
-        "y": 2.568
+        "x": 2.6416833095577745,
+        "y": 2.736
       },
       "prevControl": {
-        "x": 3.5732669033623,
-        "y": 2.425675870236177
+        "x": 3.767346789239618,
+        "y": 2.593675870236177
       },
       "nextControl": null,
       "isLocked": false,
@@ -83,7 +83,7 @@
       "minWaypointRelativePos": 1.231600270087758,
       "maxWaypointRelativePos": 2.05,
       "constraints": {
-        "maxVelocity": 1.5,
+        "maxVelocity": 1.25,
         "maxAcceleration": 3.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
@@ -105,23 +105,13 @@
     },
     {
       "fieldPosition": {
-        "x": 0.0,
-        "y": 0.0
+        "x": -10.0,
+        "y": -15.0
       },
       "rotationOffset": 0.0,
       "minWaypointRelativePos": 2.9925725860904286,
-      "maxWaypointRelativePos": 3.3274814314652237,
+      "maxWaypointRelativePos": 3.4787305874409133,
       "name": "Bump Traversal"
-    },
-    {
-      "fieldPosition": {
-        "x": 4.62,
-        "y": 4.03
-      },
-      "rotationOffset": 180.0,
-      "minWaypointRelativePos": 3.7744533947065473,
-      "maxWaypointRelativePos": 4.0,
-      "name": "Shoot"
     }
   ],
   "eventMarkers": [
@@ -129,7 +119,12 @@
       "name": "deployIntake",
       "waypointRelativePos": 0.2700877785280077,
       "endWaypointRelativePos": 2.960162052667023,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "deployIntake"
+        }
+      }
     }
   ],
   "globalConstraints": {
@@ -142,7 +137,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -146.33540531375067
+    "rotation": -129.8964807008955
   },
   "reversed": false,
   "folder": null,

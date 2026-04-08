@@ -65,7 +65,7 @@ public class ShootCmd extends Command{
     public void end(boolean interrupted) {
         shooter.setShooter(Constants.SHOOTER_DEFAULT_RPS);
         shooter.setMouth(0.0);
-        shooter.setRoller(0.0);
+        shooter.setRoller(-0.2);
         shooter.setAngle(0.0);
         intake.runIntake(0.0);
     }}
