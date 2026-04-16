@@ -24,7 +24,7 @@ public class AutoShootCmd extends Command{
     
     public void execute() {
         distance = 2.0;
-        shootSpeed = -1 * 6.39816 * distance - 33.10835;
+        shootSpeed = -1 * 6.39816 * distance - 33.10835 + 1;
         hoodRot = 0.641169 + 1.12764 * Math.log(distance);
 
         //hood checks
