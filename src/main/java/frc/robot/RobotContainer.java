@@ -29,6 +29,7 @@ import frc.robot.commands.DefaultShootCmd;
 import frc.robot.commands.ShootCmd;
 import frc.robot.Util.MatchData;
 import frc.robot.commands.AutoShootCmd;
+import frc.robot.commands.ManualShootCmd;
 
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -62,6 +63,7 @@ public class RobotContainer {
     private final Trigger a = controller.a();
     private final Trigger y = controller.y();
     private final Trigger x = controller.x();
+    private final Trigger b = controller.b();
     private final Trigger rightTrigger = controller.rightTrigger();
     private final Trigger leftTrigger = controller.leftTrigger();
     private final Trigger leftBumper = controller.leftBumper();
@@ -82,15 +84,16 @@ public class RobotContainer {
     private final DeployIntakeCmd deployIntake = new DeployIntakeCmd(intake);
     private final InstantCommand intakeUp = new InstantCommand(() -> intake.setIntakePosition(0.0));
     private final ReverseHopperCmd reverseHopperCmd = new ReverseHopperCmd(shooter, intake);
-    private final InstantCommand sprintCmd = new InstantCommand(() -> setDriveScale(0.7));
+    private final InstantCommand sprintCmd = new InstantCommand(() -> setDriveScale(1));
     private final InstantCommand defaultScaleCmd = new InstantCommand(() -> { if (!a.getAsBoolean()){setDriveScale(0.35);}});
     private final InstantCommand slowCmd = new InstantCommand(() -> setDriveScale(0.2));
     private final InstantCommand seedVision = new InstantCommand(() -> vision.setSeeded(false));
     private final ParallelCommandGroup shootAndAlign = new ParallelCommandGroup(new ShootCmd(shooter, vision, intake), drivetrain.applyRequest(() -> {
                                     double error = vision.getHeadingError(vision.getOffsetTarget(vision.getTarget()));
                                     return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.35)
-                                        .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.35)
+                                        .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.35) 
                                         .withRotationalRate(Math.abs(9 * error) > 3.5 ? 3.5 * Math.signum(error) : 12 * error);}));
+    private final ManualShootCmd manualShoot = new ManualShootCmd(shooter, intake);
 
     //helper method
     public void setDriveScale(double scale) {
@@ -98,7 +101,7 @@ public class RobotContainer {
     }
 
     public RobotContainer() {
-        NamedCommands.registerCommand("deployIntake", deployIntake);
+        NamedCommands.registerCommand("deployIntake", new DeployIntakeCmd(intake));
         NamedCommands.registerCommand("shoot", new AutoShootCmd(shooter, intake).withTimeout(5.0));
         NamedCommands.registerCommand("lowerHood", new LowerHoodCmd(shooter));
 
@@ -121,6 +124,7 @@ public class RobotContainer {
         y.whileTrue(intakeUp);
         a.whileTrue(climber.setClimber(Constants.CLIMB_ROT).alongWith(slowCmd));
         a.onFalse(defaultScaleCmd);
+        b.whileTrue(manualShoot);
 
         leftTrigger.whileTrue(deployIntake);
         rightTrigger.whileTrue(shootAndAlign);
@@ -147,7 +151,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return AutoBuilder.buildAuto("Right Auto (MIDLINE)"); 
+        return AutoBuilder.buildAuto("Left Auto (MIDLINE)"); 
         /* Options:
             (note, switch to `return Commands.none()` if you do not wish to run an auto)
             1. "Left Auto" -> Left Side relative to DS Perspective (either alliance), no midline

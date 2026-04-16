@@ -8,12 +8,14 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.LimelightHelpers;
 
 public class ElasticSubsystem extends SubsystemBase{
     private final NetworkTable elasticTable;
     private final DoublePublisher velocityPublisher;
     private final DoublePublisher voltagePublisher;
     private final BooleanPublisher activePublisher;
+    private final BooleanPublisher hasLimelight;
     private final DoublePublisher distancePublisher;
     private final DoublePublisher matchTimePublisher;
 
@@ -30,6 +32,8 @@ public class ElasticSubsystem extends SubsystemBase{
         activePublisher = elasticTable.getBooleanTopic("State").publish();
         distancePublisher = elasticTable.getDoubleTopic("Distance").publish();
         matchTimePublisher = elasticTable.getDoubleTopic("Match Time").publish();
+        hasLimelight = elasticTable.getBooleanTopic("hasTV").publish();
+
     }
 
 
@@ -40,6 +44,7 @@ public class ElasticSubsystem extends SubsystemBase{
             matchTimePublisher.set(Math.round(DriverStation.getMatchTime() * 10) / 10);
             distancePublisher.set(vision.getAbsoluteDistanceFromTarget(vision.getTarget()));
             activePublisher.set(matchState.getActive());
+            hasLimelight.set(LimelightHelpers.getTV("limelight-shooter"));
         });
     }
 }

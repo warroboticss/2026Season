@@ -119,7 +119,12 @@
       "name": "deployIntake",
       "waypointRelativePos": 0.6698176907494875,
       "endWaypointRelativePos": 4.0,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "deployIntake"
+        }
+      }
     }
   ],
   "globalConstraints": {
