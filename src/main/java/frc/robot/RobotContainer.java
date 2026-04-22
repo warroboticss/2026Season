@@ -14,6 +14,7 @@ import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -23,6 +24,7 @@ import frc.robot.generated.TunerConstants;
 
 import frc.robot.commands.DeployIntakeCmd;
 import frc.robot.commands.HomeClimberCmd;
+import frc.robot.commands.HubShootCmd;
 import frc.robot.commands.LowerHoodCmd;
 import frc.robot.commands.ReverseHopperCmd;
 import frc.robot.commands.DefaultShootCmd;
@@ -88,12 +90,12 @@ public class RobotContainer {
     private final InstantCommand defaultScaleCmd = new InstantCommand(() -> { if (!a.getAsBoolean()){setDriveScale(0.35);}});
     private final InstantCommand slowCmd = new InstantCommand(() -> setDriveScale(0.2));
     private final InstantCommand seedVision = new InstantCommand(() -> vision.setSeeded(false));
+    private final ManualShootCmd manualShoot = new ManualShootCmd(shooter, intake);
     private final ParallelCommandGroup shootAndAlign = new ParallelCommandGroup(new ShootCmd(shooter, vision, intake), drivetrain.applyRequest(() -> {
                                     double error = vision.getHeadingError(vision.getOffsetTarget(vision.getTarget()));
                                     return driveTargeting.withVelocityX((-controller.getLeftY() * MaxSpeed) * 0.35)
                                         .withVelocityY((-controller.getLeftX() * MaxSpeed) * 0.35) 
                                         .withRotationalRate(Math.abs(9 * error) > 3.5 ? 3.5 * Math.signum(error) : 12 * error);}));
-    private final ManualShootCmd manualShoot = new ManualShootCmd(shooter, intake);
 
     //helper method
     public void setDriveScale(double scale) {
@@ -102,7 +104,9 @@ public class RobotContainer {
 
     public RobotContainer() {
         NamedCommands.registerCommand("deployIntake", new DeployIntakeCmd(intake));
+        NamedCommands.registerCommand("dropIntake", new DeployIntakeCmd(intake).withTimeout(0.5));
         NamedCommands.registerCommand("shoot", new AutoShootCmd(shooter, intake).withTimeout(5.0));
+        NamedCommands.registerCommand("hubShoot", new HubShootCmd(shooter, intake).withTimeout(5.0));
         NamedCommands.registerCommand("lowerHood", new LowerHoodCmd(shooter));
 
         autoChooser = AutoBuilder.buildAutoChooser();
@@ -151,13 +155,15 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return AutoBuilder.buildAuto("Left Auto (MIDLINE)"); 
+        return AutoBuilder.buildAuto("Right Auto (MIDLINE)"); 
         /* Options:
             (note, switch to `return Commands.none()` if you do not wish to run an auto)
             1. "Left Auto" -> Left Side relative to DS Perspective (either alliance), no midline
             2. "Right Auto" -> Right Side relative to DS Perspective (either alliance), no midline
             3. "Left Auto (MIDLINE)" -> Left Side relative to DS Perspective (either alliance)
             4. "Right Auto (MIDLINE)" -> Right Side relative to DS Perspective (either alliance)
+            5. "Hub Auto" -> Centered on the Hub, shoots preloads
+            6. "Hub Auto and Intake" -> Centered on the Hub, shoots preloads, then bump traversal and intake behind hub
          */
     }
 }

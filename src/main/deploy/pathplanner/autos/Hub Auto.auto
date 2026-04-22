@@ -7,7 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Dummy Path"
+            "pathName": "Hub Path"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "hubShoot"
           }
         }
       ]

@@ -27,7 +27,6 @@ public class ShooterSubsystem extends SubsystemBase{
     public ShooterSubsystem(){
         configShooterMotors(shooterMain.getConfigurator());
         configShooterMotors(shooterFollower.getConfigurator());
-        //shooterFollower.setControl(new Follower(21, MotorAlignmentValue.Opposed));
 
         configRollerMotors(rollersMain.getConfigurator());
         configRollerMotors(rollerFollower.getConfigurator());
@@ -41,6 +40,7 @@ public class ShooterSubsystem extends SubsystemBase{
         rollersMain.optimizeBusUtilization();
         rollerFollower.optimizeBusUtilization();
         hoodAngler.optimizeBusUtilization();
+        mouth.optimizeBusUtilization();
 
         hoodAngler.setPosition(0);
     }
@@ -197,4 +197,5 @@ public class ShooterSubsystem extends SubsystemBase{
     // Apply configuration
     config.apply(newConfig, 0.050);
   }
+
 }

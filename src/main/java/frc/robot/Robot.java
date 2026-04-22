@@ -57,7 +57,7 @@ public class Robot extends TimedRobot {
     m_robotContainer.matchData.ALLIANCE = DriverStation.getAlliance().get().toString();
     m_robotContainer.vision.setSeeded(false);
     // checks if we won auto
-    if (m_robotContainer.matchData.ALLIANCE.toUpperCase().contains(DriverStation.getGameSpecificMessage())) {
+    if (m_robotContainer.matchData.ALLIANCE.contains(DriverStation.getGameSpecificMessage())) {
       m_robotContainer.matchData.WE_WON_AUTO = true;
     } else {
       m_robotContainer.matchData.WE_WON_AUTO = false;

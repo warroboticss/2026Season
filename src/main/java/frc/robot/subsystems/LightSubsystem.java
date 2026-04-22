@@ -11,7 +11,7 @@ public class LightSubsystem extends SubsystemBase {
     private final MatchStateManagerSubsystem matchState;
 
     private static final int kPort = 2;
-    private static final int kLength = 22;
+    private static final int kLength = 21;
 
     private final AddressableLED m_led;
     private final AddressableLEDBuffer m_buffer;
