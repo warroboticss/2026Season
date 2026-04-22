@@ -78,7 +78,7 @@ public class RobotContainer {
     private final IntakeSubsystem intake = new IntakeSubsystem();
     private final ClimberSubsystem climber = new ClimberSubsystem();
     public final LimelightSubsystem vision = new LimelightSubsystem(drivetrain, matchData);
-    public final MatchStateManagerSubsystem stateManager = new MatchStateManagerSubsystem(matchData, controller);
+    public final MatchStateManagerSubsystem stateManager = new MatchStateManagerSubsystem(controller);
     private final LightSubsystem light = new LightSubsystem(stateManager);
     private final ElasticSubsystem elastic = new ElasticSubsystem(stateManager, vision);
 
