@@ -11,10 +11,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import static edu.wpi.first.units.Units.*;
 
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -23,7 +20,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.generated.TunerConstants;
 
 import frc.robot.commands.DeployIntakeCmd;
-import frc.robot.commands.HomeClimberCmd;
 import frc.robot.commands.HubShootCmd;
 import frc.robot.commands.LowerHoodCmd;
 import frc.robot.commands.ReverseHopperCmd;
@@ -33,7 +29,6 @@ import frc.robot.Util.MatchData;
 import frc.robot.commands.AutoShootCmd;
 import frc.robot.commands.ManualShootCmd;
 
-import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ElasticSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -58,7 +53,6 @@ public class RobotContainer {
 
     // vars
     private double driveScale = 0.35;
-    private SendableChooser<Command> autoChooser;
 
     // controller
     private final CommandXboxController controller = new CommandXboxController(0);
@@ -76,7 +70,6 @@ public class RobotContainer {
     public final MatchData matchData = new MatchData();
     private final ShooterSubsystem shooter = new ShooterSubsystem();
     private final IntakeSubsystem intake = new IntakeSubsystem();
-    private final ClimberSubsystem climber = new ClimberSubsystem();
     public final LimelightSubsystem vision = new LimelightSubsystem(drivetrain, matchData);
     public final MatchStateManagerSubsystem stateManager = new MatchStateManagerSubsystem(controller);
     private final LightSubsystem light = new LightSubsystem(stateManager);
@@ -87,8 +80,7 @@ public class RobotContainer {
     private final InstantCommand intakeUp = new InstantCommand(() -> intake.setIntakePosition(0.0));
     private final ReverseHopperCmd reverseHopperCmd = new ReverseHopperCmd(shooter, intake);
     private final InstantCommand sprintCmd = new InstantCommand(() -> setDriveScale(1));
-    private final InstantCommand defaultScaleCmd = new InstantCommand(() -> { if (!a.getAsBoolean()){setDriveScale(0.35);}});
-    private final InstantCommand slowCmd = new InstantCommand(() -> setDriveScale(0.2));
+    private final InstantCommand defaultScaleCmd = new InstantCommand(() -> setDriveScale(0.35));
     private final InstantCommand seedVision = new InstantCommand(() -> vision.setSeeded(false));
     private final ManualShootCmd manualShoot = new ManualShootCmd(shooter, intake);
     private final ParallelCommandGroup shootAndAlign = new ParallelCommandGroup(new ShootCmd(shooter, vision, intake), drivetrain.applyRequest(() -> {
@@ -109,12 +101,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("hubShoot", new HubShootCmd(shooter, intake).withTimeout(5.0));
         NamedCommands.registerCommand("lowerHood", new LowerHoodCmd(shooter));
 
-        autoChooser = AutoBuilder.buildAutoChooser();
-        SmartDashboard.getEntry("Select Auto").unpublish();
-        SmartDashboard.putData("Select Auto", autoChooser);
-
         shooter.setDefaultCommand(new DefaultShootCmd(shooter));
-        climber.setDefaultCommand(new HomeClimberCmd(climber));
         light.setDefaultCommand(light.defaultLightCmd());
         elastic.setDefaultCommand(elastic.defaultElasticCmd());
         stateManager.setDefaultCommand(stateManager.defaultStateCmd());
@@ -126,8 +113,6 @@ public class RobotContainer {
         // driver controls
         x.onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         y.whileTrue(intakeUp);
-        a.whileTrue(climber.setClimber(Constants.CLIMB_ROT).alongWith(slowCmd));
-        a.onFalse(defaultScaleCmd);
         b.whileTrue(manualShoot);
 
         leftTrigger.whileTrue(deployIntake);
